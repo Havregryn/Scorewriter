@@ -1,6 +1,6 @@
 
 /* Pong Javascript*/
-/* Silvertweaks 2017 */
+/* Hallgrim 2017-2019 */
 
 
 var animate = window.requestAnimationFrame ||
@@ -26,7 +26,9 @@ var hasAccelereometer = true;
 var hasPhysicalKeyboard = false;
 var orientation;
 
-
+var gameMode = 0; 
+// Modes: 0: pre-game, 1 = Wait for ball, 2 = game in action, 3 = game over.
+var bgMustBeRendered = true;
 var PlayerScore = 0;
 var ComputerScore = 0;
 
@@ -181,18 +183,19 @@ var viewResize = function(){
         rightLSScoreDigit.setSizeAndPosition();
         
     }
-    
-    
-    
+	bgMustBeRendered = true;
 };
 
 
+
+// Main animation loop!
 var step = function () {
     update();
     render();
     animate(step);
 };
 
+// Updating the positions and the scores
 var update = function() {
     player.update();
     computer.update( ball );
@@ -202,6 +205,8 @@ var update = function() {
 };
 
 Player.prototype.update = function() {
+	this.paddle.old_x = this.paddle.x;
+	this.paddle.old_y = this.paddle.y;
     this.paddle.move( 0, 0 );
     for( var key in keysDown ){
         var value = Number( key);
@@ -230,7 +235,9 @@ Player.prototype.update = function() {
 };
 
 Computer.prototype.update = function( ball ){ // Automation
-    var y_pos = ball.y;
+	this.paddle.old_x = this.paddle.x;
+	this.paddle.old_y = this.paddle.y;
+	var y_pos = ball.y;
     var diff = -((this.paddle.y + (this.paddle.width / 2)) - y_pos);
     if( diff < -MaxAutoPaddleSpeed ) { diff = -MaxAutoPaddleSpeed   }
     else if( diff > MaxAutoPaddleSpeed ){ diff = MaxAutoPaddleSpeed };
@@ -270,7 +277,9 @@ Paddle.prototype.move = function( x, y ){
 };
 
 Ball.prototype.update = function( paddle1, paddle2) {
-    if( this.x_speed > 0 ){
+    this.old_x = this.x;
+	this.old_y = this.y;
+	if( this.x_speed > 0 ){
         this.x_speed = ballPlayerToPlayerSpeed;
     }
     else{
@@ -344,10 +353,13 @@ Ball.prototype.update = function( paddle1, paddle2) {
 };
 
 
-
+// The main drawing routine:
 var render = function() {
-    context.fillStyle = bgColor;
-    context.fillRect( 0, 0, width, height );
+	//if(bgMustBeRendered){		
+	//	context.fillStyle = bgColor;
+    	//context.fillRect( 0, 0, width, height );
+	//	bgMustBeRendered = false;
+	//}
     //Drawing the net
     context.fillStyle = fgColor;
     for ( var y_net = 0; (y_net + 5) < height; y_net+=20 ){
@@ -357,8 +369,11 @@ var render = function() {
     
     scoreRender( true );
     scoreRender( false );
+	player.unrender();
     player.render();
+	computer.unrender();
     computer.render();
+	ball.unrender();
     ball.render();
     
 };
@@ -366,6 +381,8 @@ var render = function() {
 function Paddle( x, y, thickness, width ) {
     this.x = x;
     this.y = y;
+	this.old_x = x;
+	this.old_y = y;
     this.width = width;
     this.thickness = thickness;
     this.x_speed = 0;
@@ -375,6 +392,10 @@ function Paddle( x, y, thickness, width ) {
 Paddle.prototype.render = function() {
     context.fillStyle = fgColor;
     context.fillRect( this.x, this.y, this.thickness, this.width );
+};
+
+Paddle.prototype.unrender = function(){
+	context.clearRect(this.old_x - 1, this.old_y - 1, this.thickness + 2, this.width + 2);	
 };
 
 function Player() {
@@ -396,13 +417,23 @@ Player.prototype.render = function() {
     this.paddle.render();
 };
 
+Player.prototype.unrender = function(){
+	this.paddle.unrender();
+};
+
 Computer.prototype.render = function() {
     this.paddle.render();
+};
+
+Computer.prototype.unrender = function(){
+	this.paddle.unrender();
 };
 
 function Ball( x, y ) {
     this.x = x;
     this.y = y;
+	this.old_x = x;
+	this.old_y = y;
     this.x_speed = ballPlayerToPlayerSpeed;
     this.y_speed = Math.floor(( Math.random() * 6) + 1 )-3;
     this. radius = ballRadius;
@@ -422,6 +453,14 @@ Ball.prototype.render = function() {
     context.fillStyle = fgColor;
     context.fill();
 };
+
+Ball.prototype.unrender = function(){
+	//context.beginPath();
+	//context.arc(this.old_x, this.old_y, this.radius, 2 * Math.PI, false);
+	//context.fillStyle = bgColor;
+	//context.fill();
+	context.clearRect(this.old_x - this.radius - 1, this.old_y - this.radius - 1 , (this.radius * 2) + 2, (this.radius * 2) + 2);
+}
 
 // Updates the scoreboard of one player
 var scoreUpdate = function( isLeftPlayer, score ){
