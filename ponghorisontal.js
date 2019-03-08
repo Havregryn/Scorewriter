@@ -26,9 +26,10 @@ var hasAccelereometer = true;
 var hasPhysicalKeyboard = false;
 var orientation;
 
-var gameMode = 0; 
+var gameMode = 1; 
 // Modes: 0: pre-game, 1 = Wait for ball, 2 = game in action, 3 = game over.
 var bgMustBeRendered = true;
+var waitingForBall = false;
 var PlayerScore = 0;
 var ComputerScore = 0;
 
@@ -190,16 +191,27 @@ var viewResize = function(){
 
 // Main animation loop!
 var step = function () {
+	if(gameMode == 1 && !waitingForBall){
+		waitingForBall = true;
+		window.setTimeout(newBall, 3000);
+	}
     update();
     render();
     animate(step);
 };
 
+var newBall = function(){
+	waitingForBall = false;
+	gameMode = 2;
+}
+
 // Updating the positions and the scores
 var update = function() {
     player.update();
     computer.update( ball );
-    ball.update( player.paddle, computer.paddle );
+	if(gameMode == 2){
+    	ball.update( player.paddle, computer.paddle );
+	}
     scoreUpdate( true, PlayerScore );
     scoreUpdate( false, ComputerScore );
 };
@@ -235,15 +247,16 @@ Player.prototype.update = function() {
 };
 
 Computer.prototype.update = function( ball ){ // Automation
-	this.paddle.old_x = this.paddle.x;
 	this.paddle.old_y = this.paddle.y;
+	this.paddle.old_x = this.paddle.x;
 	var y_pos = ball.y;
     var diff = -((this.paddle.y + (this.paddle.width / 2)) - y_pos);
     if( diff < -MaxAutoPaddleSpeed ) { diff = -MaxAutoPaddleSpeed   }
     else if( diff > MaxAutoPaddleSpeed ){ diff = MaxAutoPaddleSpeed };
+
+	if(gameMode == 1){ diff = diff / MaxAutoPaddleSpeed };
     
     //Randomly screw the ball if ball y-speed = 0;
-    
     if (ball.y_speed == 0 && diff == 0 && this.paddle.x - ball.x - ballRadius < ball.x_speed ){
         //alert(ball.x - this.paddle.x);
         diff = (Math.round( Math.random()) - 0.5) * 2 * MaxAutoPaddleSpeed;
@@ -325,7 +338,7 @@ Ball.prototype.update = function( paddle1, paddle2) {
         this.x = width/2;
         this.y = height/2;
         
-        
+    	gameMode = 1;    
     }
     
     //Check if hitting the Players paddle
@@ -365,16 +378,17 @@ var render = function() {
     for ( var y_net = 0; (y_net + 5) < height; y_net+=20 ){
         context.fillRect( (width/2)-2, y_net, 2, 10 );
     }
-    
-    
-    scoreRender( true );
-    scoreRender( false );
 	player.unrender();
     player.render();
 	computer.unrender();
     computer.render();
 	ball.unrender();
-    ball.render();
+	scoreUnrender();
+    scoreRender( true );
+    scoreRender( false );
+    if(gameMode == 2){
+		ball.render();
+	}
     
 };
 
@@ -500,7 +514,12 @@ var scoreRender = function( isLeftPlayer ){
     }
 };
 
-
+var scoreUnrender = function(){
+	leftLSScoreDigit.unrender();
+	leftMSScoreDigit.unrender();
+	rightLSScoreDigit.unrender();
+	rightMSScoreDigit.unrender();
+};
 
 //Score digit object, represents one digit on the score board
 function ScoreDigit( isLeftPlayer, isLSDigit ){
@@ -562,10 +581,7 @@ function ScoreDigit( isLeftPlayer, isLSDigit ){
     this.segments[ 5 ] = new Segment( this.x_rightPillar, this.y_top, this.digitBoldness, this.digitSize );
     this.segments[ 6 ] = new Segment( this.x_rightPillar, this.y_topOfMidBridge,
                                      this.digitBoldness, this.digitSize + this.digitBoldness );
-    
-    
-    
-    
+        
 }
 
 
@@ -616,6 +632,10 @@ ScoreDigit.prototype.render = function(){
     for( i = 0; i < this.segments.length; i++ ){
         this.segments[ i ].render();
     }
+};
+
+ScoreDigit.prototype.unrender = function(){
+	context.clearRect(this.x_lowerLeftCorner - 1, this.y_top - 1, this.digitSize + 2, (this.digitSize * 2) + 2);  
 };
 
 //This function is called when resizing the output window
