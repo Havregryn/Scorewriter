@@ -28,6 +28,7 @@ var orientation;
 
 var gameMode = 1; 
 // Modes: 0: pre-game, 1 = Wait for ball, 2 = game in action, 3 = game over.
+var gameLevel = 1;
 var bgMustBeRendered = true;
 var waitingForBall = false;
 var PlayerScore = 0;
@@ -60,6 +61,7 @@ var scoreFont=[];
 var player;
 var computer;
 var ball;
+var preGamePanel;
 
 //var leftLSScoreDigit = new ScoreDigit( true, true );
 //var leftMSScoreDigit = new ScoreDigit( true, false );
@@ -131,7 +133,8 @@ window.onload = function() {
     
     
     viewResize();
-    
+   	
+	preGamePanel = new PreGamePanel();
     player = new Player();
     computer = new Computer();
     ball = new Ball( width/2, height/2 );
@@ -147,6 +150,9 @@ window.onload = function() {
 };
 
 var mouseClickedOnCanvas = function(){
+	if(gameMode == 0){
+		
+	}
     ball.hitPlayerAudio.play();
     ball.hitWallAudio.play();
     ball.outAudio.play();
@@ -184,7 +190,9 @@ var viewResize = function(){
         rightLSScoreDigit.setSizeAndPosition();
         
     }
-	bgMustBeRendered = true;
+	if( preGamePanel != undefined){
+		preGamePanel.updatePosition();
+	}
 };
 
 
@@ -202,8 +210,11 @@ var step = function () {
 
 var newBall = function(){
 	waitingForBall = false;
+	preGamePanel.unrender();
 	gameMode = 2;
 }
+
+
 
 // Updating the positions and the scores
 var update = function() {
@@ -357,23 +368,12 @@ Ball.prototype.update = function( paddle1, paddle2) {
         this.x_speed = -this.x_speed;
         this.y_speed += (paddle2.y_speed / 2 );
         this.x += this.x_speed;
-    }
-    
-    
-    
-    
-    
+    } 
 };
 
 
 // The main drawing routine:
 var render = function() {
-	//if(bgMustBeRendered){		
-	//	context.fillStyle = bgColor;
-    	//context.fillRect( 0, 0, width, height );
-	//	bgMustBeRendered = false;
-	//}
-    //Drawing the net
     context.fillStyle = fgColor;
     for ( var y_net = 0; (y_net + 5) < height; y_net+=20 ){
         context.fillRect( (width/2)-2, y_net, 2, 10 );
@@ -386,11 +386,58 @@ var render = function() {
 	scoreUnrender();
     scoreRender( true );
     scoreRender( false );
+	if(gameMode == 1){
+		preGamePanel.render();
+	}
     if(gameMode == 2){
 		ball.render();
 	}
     
 };
+
+function PreGamePanel(){	
+	this.text = ["*************************",
+				"*        P O N G        *",
+				"*                       *",
+				"*     Select Level:     *",
+				"*                       *",
+				"*     1     2     3     *",
+				"*                       *",
+				"*      Start Game       *",
+				"*                       *",
+				"*************************"];
+	this.txtLineCount = 10;
+	this.rowWidth = 25;
+	this.pxPrLetter = 15.6;
+	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
+	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+}
+
+PreGamePanel.prototype.updatePosition = function(){	
+	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
+	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+};
+
+
+PreGamePanel.prototype.render = function(){
+	context.font = "26px Courier New";
+	context.fillStyle = "grey";
+	for(var i = 0; i < this.txtLineCount; i++){
+		context.fillText(this.text[i], this.left_x, this.top_y + i * 28);	
+	}
+	this.renderLevelMarker();
+};
+
+PreGamePanel.prototype.unrender = function(){
+	context.clearRect(this.left_x, this.top_y - 26, this.rowWidth * this.pxPrLetter, 28 * this.txtLineCount);
+};
+
+PreGamePanel.prototype.renderLevelMarker = function(){
+	context.fillStyle = "grey";
+	context.fillRect(this.left_x + 6 * this.pxPrLetter, this.top_y + 5 * 28 + 6, this.pxPrLetter, 3);
+};
+
+
 
 function Paddle( x, y, thickness, width ) {
     this.x = x;
