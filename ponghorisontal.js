@@ -26,7 +26,7 @@ var hasAccelereometer = true;
 var hasPhysicalKeyboard = false;
 var orientation;
 
-var gameMode = 1; 
+var gameMode = 0; 
 // Modes: 0: pre-game, 1 = Wait for ball, 2 = game in action, 3 = game over.
 var gameLevel = 1;
 var bgMustBeRendered = true;
@@ -36,7 +36,7 @@ var ComputerScore = 0;
 
 var bgColor = "#000000";
 var fgColor = "#FFFFFF";
-var scoreColor = "999999";
+var scoreColor = "#999999";
 //var score_x = Math.round(width/6 ); //Distance left edge of canvas to left edge of leftmost digit
 //var score_y = Math.round( height/4 ); //Distance top of canvas to lower edge of digits
 //var scoreSize = Math.round( height/13 );
@@ -149,13 +149,11 @@ window.onload = function() {
     
 };
 
-var mouseClickedOnCanvas = function(){
-	if(gameMode == 0){
-		
-	}
-    ball.hitPlayerAudio.play();
-    ball.hitWallAudio.play();
-    ball.outAudio.play();
+var mouseClickedOnCanvas = function(event){	
+	var rect = canvas.getBoundingClientRect();
+	var x = event.clientX - rect.left;
+	var y = event.clientY - rect.top;
+	preGamePanel.clicked(x, y);
 }
 
 var viewResize = function(){
@@ -201,7 +199,7 @@ var viewResize = function(){
 var step = function () {
 	if(gameMode == 1 && !waitingForBall){
 		waitingForBall = true;
-		window.setTimeout(newBall, 3000);
+		setTimeout(newBall, 3000);
 	}
     update();
     render();
@@ -210,9 +208,17 @@ var step = function () {
 
 var newBall = function(){
 	waitingForBall = false;
-	preGamePanel.unrender();
 	gameMode = 2;
-}
+};
+
+var startGame = function(){
+	preGamePanel.unrender();
+	gameMode = 1;
+};
+
+var preGameStartBlinker = function(){
+	preGamePanel.startButtonWhite = !preGamePanel.startButtonWhite;	
+};
 
 
 
@@ -342,14 +348,14 @@ Ball.prototype.update = function( paddle1, paddle2) {
         else{
             PlayerScore +=1;
         }
-        
-        this.y_speed = Math.floor(( Math.random() * 6) + 1 ) - 3;
-        //this.y_speed = 0;
-        this.x_speed = (Math.round(Math.random()) - 0.5 ) * 2 * ballPlayerToPlayerSpeed;
-        this.x = width/2;
-        this.y = height/2;
-        
-    	gameMode = 1;    
+		if(PlayerScore == 11 || ComputerScore == 11){ gameMode = 3;  }
+        else{
+        	this.y_speed = Math.floor(( Math.random() * 6) + 1 ) - 3;
+        	this.x_speed = (Math.round(Math.random()) - 0.5 ) * 2 * ballPlayerToPlayerSpeed;
+        	this.x = width/2;
+        	this.y = height/2;
+    		gameMode = 1;
+		}
     }
     
     //Check if hitting the Players paddle
@@ -374,19 +380,16 @@ Ball.prototype.update = function( paddle1, paddle2) {
 
 // The main drawing routine:
 var render = function() {
-    context.fillStyle = fgColor;
-    for ( var y_net = 0; (y_net + 5) < height; y_net+=20 ){
-        context.fillRect( (width/2)-2, y_net, 2, 10 );
-    }
 	player.unrender();
     player.render();
 	computer.unrender();
     computer.render();
 	ball.unrender();
+	if(gameMode != 0 && gameMode != 3){ renderNet(); }
 	scoreUnrender();
     scoreRender( true );
     scoreRender( false );
-	if(gameMode == 1){
+	if(gameMode == 0){
 		preGamePanel.render();
 	}
     if(gameMode == 2){
@@ -401,9 +404,9 @@ function PreGamePanel(){
 				"*                       *",
 				"*     Select Level:     *",
 				"*                       *",
-				"*     1     2     3     *",
+				"*    [1]   [2]   [3]    *",
 				"*                       *",
-				"*      Start Game       *",
+				"*                       *",
 				"*                       *",
 				"*************************"];
 	this.txtLineCount = 10;
@@ -411,11 +414,51 @@ function PreGamePanel(){
 	this.pxPrLetter = 15.6;
 	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
 	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+	this.levelMarkerBlinkOn = false;
+	this.startButtonWhite = false;
+	this.gameLevelBlinkTimer = setInterval(this.levelBlink, 300);
+	this.startBlinkerTimer;
 }
 
 PreGamePanel.prototype.updatePosition = function(){	
 	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
 	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+};
+
+PreGamePanel.prototype.levelBlink = function(){
+	preGamePanel.levelMarkerBlinkOn = !(preGamePanel.levelMarkerBlinkOn);
+	//alert("I blinkef: " + this.levelUnderScoreShow);
+};
+
+PreGamePanel.prototype.clicked = function(mouseX, mouseY){
+	if(gameMode == 0){
+		if(mouseY > this.top_y + (3.5 * 28) && mouseY < this.top_y + (5.5 * 28)){
+			if(mouseX > this.left_x + (5 * this.pxPrLetter) && mouseX < this.left_x + (8 * this.pxPrLetter)){
+				ball.hitPlayerAudio.play();
+				this.unrenderLevelMarker();
+				gameLevel = 1;
+				this.renderLevelMarker()
+			}
+			else if(mouseX > this.left_x + (11 * this.pxPrLetter) && mouseX < this.left_x + (14 * this.pxPrLetter)){	
+				ball.hitPlayerAudio.play();
+				this.unrenderLevelMarker();
+				gameLevel = 2;
+				this.renderLevelMarker()
+			}
+			else if(mouseX > this.left_x + (17 * this.pxPrLetter) && mouseX < this.left_x + (20 * this.pxPrLetter)){
+				ball.hitPlayerAudio.play();
+				this.unrenderLevelMarker();
+				gameLevel = 3;
+				this.renderLevelMarker()
+			}
+		}
+		if(mouseY > this.top_y + (6 *28) && mouseY < this.top_y + (8 *28) && 
+			mouseX > this.left_x + (6 * this.pxPrLetter) && mouseX < this.left_x + (19 * this.pxPrLetter)){
+			ball.hitPlayerAudio.play();
+			this.startBlinkerTimer = setInterval(preGameStartBlinker, 50);
+			setTimeout(startGame, 2000);
+		}
+	}
 };
 
 
@@ -425,7 +468,14 @@ PreGamePanel.prototype.render = function(){
 	for(var i = 0; i < this.txtLineCount; i++){
 		context.fillText(this.text[i], this.left_x, this.top_y + i * 28);	
 	}
-	this.renderLevelMarker();
+	if(this.levelMarkerBlinkOn == true) {
+		this.renderLevelMarker();
+	}
+	else{
+		this.unrenderLevelMarker();
+	}
+
+	this.renderStartButton();
 };
 
 PreGamePanel.prototype.unrender = function(){
@@ -434,8 +484,55 @@ PreGamePanel.prototype.unrender = function(){
 
 PreGamePanel.prototype.renderLevelMarker = function(){
 	context.fillStyle = "grey";
-	context.fillRect(this.left_x + 6 * this.pxPrLetter, this.top_y + 5 * 28 + 6, this.pxPrLetter, 3);
+	context.fillRect(this.left_x + (6 * gameLevel) * this.pxPrLetter, this.top_y + 5 * 28 + 6, this.pxPrLetter, 5);
 };
+
+PreGamePanel.prototype.unrenderLevelMarker = function(){
+	context.clearRect(this.left_x + (6 * gameLevel) * this.pxPrLetter - 1, this.top_y + 5 * 28 + 6, this.pxPrLetter + 2, 5);
+};
+
+PreGamePanel.prototype.renderStartButton = function(){
+	context.font = "26px Courier New";
+	if(this.startButtonWhite){ context.fillStyle = "white"; }
+	else{ context.fillStyle = "grey";  }
+	context.fillText("[Start Game]", this.left_x + (6 * this.pxPrLetter), this.top_y + (7 * 28));
+};
+
+
+function GameOverPanel(){	
+	this.text = ["*************************",
+				"*                       *",
+				"*                       *",		
+				"*                       *",
+				"*************************"];
+	this.txtLineCount = 5;
+	this.rowWidth = 25;
+	this.pxPrLetter = 15.6;
+	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
+	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+}
+
+GameOverPanel.prototype.updatePosition = function(){	
+	this.left_x = (width / 2) - (this.pxPrLetter * this.rowWidth / 2);
+	this.top_y = (height/2) - (this.txtLineCount * 28/2);
+};
+
+
+GameOverPanel.prototype.render = function(){
+	context.font = "26px Courier New";
+	context.fillStyle = "grey";
+	for(var i = 0; i < this.txtLineCount; i++){
+		context.fillText(this.text[i], this.left_x, this.top_y + i * 28);	
+	}
+};
+
+GameOverPanel.prototype.unrender = function(){
+	context.clearRect(this.left_x, this.top_y - 26, this.rowWidth * this.pxPrLetter, 28 * this.txtLineCount);
+};
+
+
+
+
 
 
 
@@ -501,7 +598,7 @@ function Ball( x, y ) {
     
     this.hitPlayerAudio = new Audio("audio/pongplayeraudio.wav");
     this.hitWallAudio = new Audio("audio/pongwallaudio.wav");
-    this.outAudio = new Audio("audio/pongoutaudio.wav");
+    this.outAudio = new Audio("audio/pongoutnew.wav");
     this.hitPlayerAudio.preload = "auto";
     this.hitWallAudio.preload = "auto";
     this.outAudio.preload = "auto";
@@ -786,6 +883,13 @@ Segment.prototype.setSizeAndPosition =function( segment_x, segment_y, segment_wi
     this.height = segment_height;
     
 };
+
+function renderNet(){
+	context.fillStyle = fgColor;
+	for ( var y_net = 0; (y_net + 5) < height; y_net+=20 ){
+	    context.fillRect( (width/2)-2, y_net, 2, 10 );
+	}
+}
 
 
 
