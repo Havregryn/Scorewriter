@@ -9,8 +9,9 @@ var canvas;
 var context;
 var width;
 var height;
-var spacingPx = 110; // The main zoom level: Spacing between lines in a staff
-var padding = 0.3; // The minimum padding between items, as a fraction of spacing.
+var Q_NOTE = 30240; // No of ticks in a quarter note
+var spacingPx =20; // The main zoom level: Spacing between lines in a staff
+var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 16; // Releated to spacing
 var staffs = [];
 var musicSystem; // The main score, all staffs combined
@@ -18,6 +19,21 @@ var imagesCount = 100; // The number of images
 var itemImages = [imagesCount]; // All images of the notation items.
 var itemImagesInfo = [imagesCount]; // Scaling data etc.
 var staffMeasures = [];
+
+// Table setting the Y axis offsets of the noteNr´s in a GClef.
+//                      C   C#    D    Eb   E    F     F#    G   G#     A     Bb     B
+var NOTENR_Y_OFFSET = [ 1, 0.75, 0.5, 0.25, 0, -0.5, -0.75, -1, -1.25, -1.5, -1.75, -2];
+
+//                        Cb                Gb,                  Db                 Ab
+var KEYS_Y_OFFSET = [[4, -0.5, 5, -0.75], [11, -2.5, 0, 0.75 ],[6, -1, 7, -1.25],[1, 0.5, 2, 0.25],
+//                        Eb                Bb                 F                 C
+					 [8, -1.5, 9, -1.75],[3, 0, 4, -0.25],[10, -2, 11, -2.25],[-1, 0, -1, 0  ],
+//						  G					D				A 					E
+					  [5, -0.25, 6, -0.5],[0, 1.25, 1, 1],[7, -0.75, 8, -1],[2, 0.75, 3, 0.5 ],
+//						  B					F#				 C#
+					  [9, -1.25, 10, -1.5],[4, 0.25, 5, 0],[11, -1.75, 0, 1.5]];
+
+var SCALE_FROM_CHROM = [0, 0.5, 1, 1.5, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6]; 
 
 window.onload = function(){
 	canvas = document.createElement( 'canvas' );
@@ -27,18 +43,37 @@ window.onload = function(){
 	loadImgs();
 
 	var i;
-	for(i = 0; i < 8; i++){
-		staffMeasures[i] = new Staff_Measure(4,4,4, 50);
+	for(i = 0; i < 1; i++){
+		staffMeasures[i] = new Staff_Measure(4,4,2, 50);
 	}
 	staffMeasures[0].showInitClef = true;
-	staffMeasures[0].showInitKey = false;
+	staffMeasures[0].showInitKey = true;
 	staffMeasures[0].showInitTimeSig = true;
 
-	var note = new Note(4, 6, 0, 1, 0);
-	staffMeasures[0].addMusic(note, 1, 0, 0);	
-	staffMeasures[1].addMusic(new Note(4, 14, 0, 4, 0), 1, 0, 0);
+	staffMeasures[0].addMusic(new NoteRest(true, 59, 0, 0, Q_NOTE));
+	staffMeasures[0].addMusic(new NoteRest(true, 62, 0, Q_NOTE, Q_NOTE));		
+	staffMeasures[0].addMusic(new NoteRest(true, 63, 0, Q_NOTE*2, Q_NOTE));
+	staffMeasures[0].addMusic(new NoteRest(true, 65, 0, Q_NOTE*3, Q_NOTE));	
+/*
+	staffMeasures[1].addMusic(new NoteRest(true, 67, 0, Q_NOTE));
+	staffMeasures[1].addMusic(new NoteRest(true, 69, Q_NOTE , Q_NOTE));		
+	staffMeasures[1].addMusic(new NoteRest(true, 71, Q_NOTE*2, Q_NOTE));
+	staffMeasures[1].addMusic(new NoteRest(true, 72, Q_NOTE * 3 , Q_NOTE));	
 
+	staffMeasures[2].addMusic(new NoteRest(true, 74, 0, Q_NOTE));
+	staffMeasures[2].addMusic(new NoteRest(true, 76, Q_NOTE , Q_NOTE));		
+	staffMeasures[2].addMusic(new NoteRest(true, 77, Q_NOTE*2, Q_NOTE));
+	staffMeasures[2].addMusic(new NoteRest(true, 79, Q_NOTE * 3 , Q_NOTE));	
+	
 
+	staffMeasures[3].addMusic(new NoteRest(true, 81, 0, Q_NOTE));
+	staffMeasures[3].addMusic(new NoteRest(true, 83, Q_NOTE , Q_NOTE));		
+	staffMeasures[3].addMusic(new NoteRest(true, 84, Q_NOTE*2, Q_NOTE));
+	staffMeasures[3].addMusic(new NoteRest(true, 86, Q_NOTE *3  , Q_NOTE));	
+	
+
+	staffMeasures[4].addMusic(new NoteRest(true, 88, 0, Q_NOTE * 4));	
+*/
 };
 
 
@@ -60,13 +95,24 @@ var loadImgs = function(){
 	itemImagesInfo[1].param2 = 1.13; // stemX right offset from note leftX
 	itemImagesInfo[1].param3 = 0.6; // stemY left offset from note upperY
 	itemImagesInfo[1].param4 = 0.35; // stemY right offset from note upperY
-	setImage(2, "images/WholeNote.svg", new ItemImgInfo(1,2, 0, 0));
-	setImage(20, "images/Sharp.svg", new ItemImgInfo(2.8, 0.3, 0, 0.6));
-	setImage(21, "images/Flat.svg", new ItemImgInfo(2.6, 0.3, 0, 0.2));
-	setImage(50, "images/GClef.svg", new ItemImgInfo(8, 0.37, 0, -2));
+	setImage(2, "images/WholeNote.svg", new ItemImgInfo(1,1.7, 0, 0));
+	setImage(20, "images/Sharp.svg", new ItemImgInfo(2.8, 0.3, 0, -0.8));	
+	itemImagesInfo[20].param1 = 1.1; // Distance from Note
+	setImage(21, "images/Flat.svg", new ItemImgInfo(2.6, 0.4, 0, -1.3));
+	itemImagesInfo[21].param1 = 1.1; // Distance from Note
+	setImage(22, "images/natural.svg", new ItemImgInfo(3.52, 0.25, 0, -1.25));
+	itemImagesInfo[22].param1 = 1.1; // Distance from Note
+	setImage(50, "images/GClef.svg", new ItemImgInfo(8, 0.37, 0, -2));	
+	itemImagesInfo[50].param1 = 0; // Y-pos offset compared to G clef
+	itemImagesInfo[50].param2 = 0; // Offset of key notation
 	setImage(51, "images/FClef.svg", new ItemImgInfo(3.2, 0.9, 0, 0));
-	itemImagesInfo[51].param1 = -21; // Offset of steps  compared to g clef 
+	itemImagesInfo[51].param1 = -6; // Y_pos offset compared to G Clef
 	itemImagesInfo[51].param2 = -2; // Offset of key notation
+	setImage(52, "images/CClef.svg", new ItemImgInfo(4, 1, 0, 0));
+	itemImagesInfo[52].param1 = -3; // Y_pos offset compared to G Clef
+	itemImagesInfo[52].param2 = -1; // Offset of key notation
+
+
 	waitForLoaded();
 
 };
@@ -156,6 +202,7 @@ Staff.prototype.render = function(leftX, rightX, upperY){
 var Staff_Measure = function(topMeter, bottomMeter, key, clefNr){
 	this.topMeter = topMeter;
 	this.bottomMeter = bottomMeter;
+	this.totalTicks = (4 / bottomMeter) * Q_NOTE * topMeter;  
 	this.key = key;// in fifths from c
 	this.clefNr = clefNr; // The initial clef
 	this.pitchOffset = 0;
@@ -163,29 +210,73 @@ var Staff_Measure = function(topMeter, bottomMeter, key, clefNr){
 	this.showInitClef = false;
 	this.showInitKey = false;
 	this.showInitTimeSig =false;
-	// items stores the music items. Everything that is neccessary for the music to be played.
-	this.items = [];
+	// musicItems stores the music items which is placed in the music grid.
+	this.musicItems = [];
+	this.shortestInBarTicks = 0;
 	// graph_items stores all graphical items in the bar and their positioning info:
 	this.graph_items = [];
-	this.noteItemsCount = 0; // Notes, accidentals demanding horisontal space
 	this.leftMarginWidth = 0; 
 	this.rightMarginWidth = 0;
 	this.innerWidth = 0;
+	this.noteToYPos = [12];
+	this.cScaleSteps = [7]; // index 0 = C. The chrom nr of each c scale step with acc.
+	this.looseAccidentals = [];
+
+	this.updateCScaleSteps();
+	this.updateNoteToYPosTable();
+};
+
+Staff_Measure.prototype.updateCScaleSteps = function(){
+	this.cScaleSteps = [0, 2, 4, 5, 7, 9, 11];
+	if(this.key > 0){
+		for(i = 0; i < this.key; i++){
+			this.cScaleSteps[(((i + 1) * 4) - 1) % 7] += 1;
+		}
+	}
+	else if(this.key < 0){// 064, skal være 0 6 2
+		for(i = 0; i < -this.key; i++){
+			this.cScaleSteps[(((i + 1) * 3) + 3) % 7] -= 1;
+		}
+	}
+};
+
+Staff_Measure.prototype.updateNoteToYPosTable = function(){
+	var i;
+	for(i = 0; i < 12; i++){
+		this.noteToYPos[i] = NOTENR_Y_OFFSET[i];
+	}
+	if(this.key > 0){
+		for(i = 7; i < this.key + 8; i++){
+			var keyOffsets = KEYS_Y_OFFSET[i];
+			this.noteToYPos[keyOffsets[0]] = keyOffsets[1];
+			this.noteToYPos[keyOffsets[2]] = keyOffsets[3];
+		}
+	}
+	else if(this.key < 0){ 	
+		for(i = 7; i > 6 + this.key; i--){
+			var keyOffsets = KEYS_Y_OFFSET[i];
+			this.noteToYPos[keyOffsets[0]] = keyOffsets[1];
+			this.noteToYPos[keyOffsets[2]] = keyOffsets[3];
+		}
+	}
+
 };
 
 
-// Subdivpos:: 12 = 1st subdiv, 2.sub-sub-div
-// subDivPosLength = No of digits in SubDivPos
-Staff_Measure.prototype.addMusic = function(note, beatNr, subDivPos, subDivPosLength){
-
+// Inserting a note or rest. ticksFromStart = ticks from start of bar.
+// var NoteRest = function(isNote, noteNr, ticksPos, ticksLength){
+Staff_Measure.prototype.addMusic = function(noteRest){
+	var i;
+	if(this.musicItems.length == 0 || noteRest.ticksPos > this.musicItems[this.musicItems.length-1].ticksPos){
+		this.musicItems.push(noteRest);
+	}
+	for(i = 0; i < this.musicItems.lengsth; i++){
+		if(noteRest.ticksPos <=  this.musicItems[i].ticksPos){
+			this.noteItems.splice(i, 0, noteRest);
+		}
+	}
 };
 
-
-
-
-Staff_Measure.prototype.addToNoteItemsCount = function(count){
-	this.noteItemsCount += count;
-};
 
 Staff_Measure.prototype.buildGraphic = function(){
 	
@@ -209,13 +300,13 @@ Staff_Measure.prototype.buildGraphic = function(){
 			var sharpWidth = itemImagesInfo[20].width;
 			for(i = 0; i < this.key; i++){
 				if(i % 2 == 0){
-					tmpY =  - 2 - (i * 0.25);
+					tmpY =  -0.5 - (i * 0.25);
 					if(i > 3){ tmpY += 3.5; }
 					this.graph_items.push(new GraphicItem(20, 1, keyX + (sharpWidth * i) + (padding * i), tmpY + clefOffset));
 					this.leftMarginWidth += (sharpWidth + padding);
 				}
 				else{ 
-					this.graph_items.push(new GraphicItem(20, 1,  keyX + (sharpWidth * i) + (padding * i), -0.25 - (i * 0.25)+ clefOffset ));	
+					this.graph_items.push(new GraphicItem(20, 1,  keyX + (sharpWidth * i) + (padding * i), 1.25 - (i * 0.25)+ clefOffset ));	
 					this.leftMarginWidth += (sharpWidth + padding);
 				}
 			}
@@ -226,12 +317,13 @@ Staff_Measure.prototype.buildGraphic = function(){
 			var flatWidth = itemImagesInfo[21].width;
 			for(i = 0; i < (-1 * this.key); i++){
 				if(i % 2 == 0){
-					this.graph_items.push(new GraphicItem(21, 1,  keyX + (flatWidth * i) + (padding * i), i * 0.25 + clefOffset ));	
-					this.leftMarginWidth += (flatWidth + padding);
+					this.graph_items.push(new GraphicItem(21, 1,  keyX + (flatWidth * i) + (0.5 * padding * i),
+							                              i * 0.25 + clefOffset + 1.5 ));	
+					this.leftMarginWidth += (flatWidth + padding * 0.5);
 				}
 				else{	
-					this.graph_items.push(new GraphicItem(21, 1, keyX + (flatWidth * i) + (padding *i), -1.75 + (i * 0.25) + clefOffset ));	
-					this.leftMarginWidth += (flatWidth + padding);
+					this.graph_items.push(new GraphicItem(21, 1, keyX + (flatWidth * i) + (0.5 *padding *i), -0.25 + (i * 0.25) + clefOffset ));	
+					this.leftMarginWidth += (flatWidth + padding * 0.5);
 				}
 
 			}
@@ -242,7 +334,6 @@ Staff_Measure.prototype.buildGraphic = function(){
 	if(this.showInitTimeSig){
 		this.graph_items.push(new TimeSignature(this.topMeter, this.bottomMeter, 1, 
 							  					this.leftMarginWidth + padding * 3, 0));
-		this.leftMarginWidth += padding * 7;
 	}
 
 	//Notes
@@ -262,7 +353,7 @@ Staff_Measure.prototype.render = function(leftX, topY, width){
 
 	// lines:
 	context.strokeStyle = "black";
-	lineW = spacingPx/50;
+	var lineW = spacingPx/50;
 	if(lineW < 1){lineW = 1};
 	context.lineWidth = lineW;
 	var lineNr;
@@ -305,15 +396,132 @@ Staff_Measure.prototype.render = function(leftX, topY, width){
 			}
 		}
 	}
-	renderImage(1, leftX + 500, topY);
-	var info = itemImagesInfo[1];
-	var strW = spacingPx/30;
-	if(strW < 1){ strW = 1; };
-	context.lineWidth = strW;;
-	context.beginPath();
-	context.moveTo(leftX + 500 + info.param2 * spacingPx, topY + (info.param4 * spacingPx));
-	context.lineTo(leftX + 500 + info.param2 * spacingPx, topY - (3.5 * spacingPx) );
-	context.stroke();
+
+	// NoteRest drawing
+	var innerLeftX = leftX + this.leftMarginWidth * spacingPx + spacingPx;
+	var innerRightX = leftX + width - this.rightMarginWidth * spacingPx - padding * spacingPx - spacingPx;
+	var innerWidth = innerRightX - innerLeftX;
+
+
+	for(itemIx = 0; itemIx < this.musicItems.length; itemIx++){
+		var noteRest = this.musicItems[itemIx];
+		var notePosX = innerLeftX + (innerWidth / this.totalTicks) * noteRest.ticksPos; 
+		// Must calculate Ypos based on pitch here!!
+		// Depends on clef, key, signs in the bar..
+		var noteOct = Math.floor(noteRest.noteNr / 12); //Middle octave is 5.
+		var noteStep = noteRest.noteNr - (noteOct * 12); // C = 0..B = 11
+		var noteScaleStep = SCALE_FROM_CHROM[noteStep];
+		var notePosY = topY + (this.noteToYPos[noteStep] * spacingPx);
+		
+
+		// Calculate accidental
+		var noteIsInKey = false;
+		for(i = 0; i < 7; i++){
+			if(noteStep == this.cScaleSteps[i]){
+				noteIsInKey = true;
+				break;
+			}	
+		}
+		if(!noteIsInKey){
+			// Note is not in key, accidental must be set:
+			if(noteRest.blwabv == 0){
+				if(noteIsInCScale(noteStep)){
+					// Note can be set to natural:
+					noteRest.shownAcc = 0;
+					if(this.key > 0){ notePosY -= 0.25 * spacingPx; }
+					else{ notePosY += 0.25 * spacingPx; }
+				}
+				else if(this.key > 0){
+					noteRest.shownAcc = 1;
+					notePosY += 0.25 * spacingPx;
+				}
+				else{
+					noteRest.shownAcc = -1;
+					notePosY -= 0.25 * spacingPx;
+				}
+			}
+
+		}
+
+
+		notePosY -= ((noteOct - 6) * 3.5 * spacingPx);
+		notePosY += itemImagesInfo[this.clefNr].param1 * spacingPx;
+
+		if(noteRest.isNote){
+			//Drawing ledger lines:
+			var staffLowY = topY + 4 * spacingPx;
+			var ledgeDelta = 1.35;
+			if(noteRest.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
+			if(notePosY > staffLowY){
+				var noOfLines = 0.5 + ((notePosY - staffLowY) / spacingPx);
+				context.lineWidth = lineW;
+				context.beginPath();
+				for(i = 1; i <= noOfLines; i++){
+					context.moveTo(notePosX - spacingPx * 0.15, staffLowY + i * spacingPx);
+					context.lineTo(notePosX + spacingPx * ledgeDelta, staffLowY + i * spacingPx);	
+				}
+				context.stroke();
+			}
+			else if(notePosY < topY - spacingPx){	
+				var noOfLines = ((topY - notePosY) / spacingPx) - 0.5;
+				context.lineWidth = lineW;
+				context.beginPath();
+				for(i = 1; i <= noOfLines; i++){
+					context.moveTo(notePosX - spacingPx * 0.15, topY - i * spacingPx);
+					context.lineTo(notePosX + spacingPx * ledgeDelta, topY - i * spacingPx);	
+				}
+				context.stroke();
+			}
+			renderImage(noteRest.imgNr, notePosX, notePosY);
+			// Drawing stem:
+			if(noteRest.ticksLength < Q_NOTE * 4){
+				var info = itemImagesInfo[1];
+				var stemW = spacingPx/30;
+				var stemLength = 3 * spacingPx;
+				if(notePosY > staffLowY + spacingPx){
+					stemLength = notePosY - staffLowY  +  2 * spacingPx;
+				}
+				else if(notePosY < topY - spacingPx){
+					stemLength = topY + spacingPx - notePosY;
+				}
+
+				if(stemW < 1){ stemW = 1; };
+				context.lineWidth = stemW;;
+				context.beginPath();
+				if(notePosY > topY + spacingPx){
+					context.moveTo(notePosX + info.param2 * spacingPx, notePosY + (info.param4 * spacingPx));
+					context.lineTo(notePosX + info.param2 * spacingPx, notePosY - stemLength );
+				}
+				else{					
+					context.moveTo(notePosX + info.param1 * spacingPx, notePosY + (info.param3 * spacingPx));
+					context.lineTo(notePosX + info.param1 * spacingPx, notePosY + stemLength + spacingPx );
+				}
+				context.stroke();
+			}
+			// accidentals:
+			if(noteRest.shownAcc !=  99){
+				var accImgNr;
+				if(noteRest.shownAcc == - 1){ accImgNr = 21;  }
+				else if(noteRest.shownAcc == 0){ accImgNr = 22; }
+				else if(noteRest.shownAcc == 1 ){ accImgNr = 20; }	
+				renderImage(accImgNr, notePosX - itemImagesInfo[accImgNr].param1 * spacingPx, notePosY);
+			}
+			
+
+		}
+		else{
+			
+			if(noteRest.ticksLength >= 2 * Q_NOTE){
+				
+				if(noteRest.ticksLength >= 4 * Q_NOTE){
+					context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
+				}
+				else{
+					context.fillRect(notePosX, topY + spacingPx * 1.5, spacingPx, spacingPx / 2);
+				}
+			}
+		}
+	}
 
 };
 
@@ -353,36 +561,57 @@ var TimeSignature = function(topNr, botNr, posRef, leftX, upperY){
 };
 
 
-var Note = function(octave, step, accidental, value, dotsCount){
-	this.octave = octave; // 4 = Middle octave
-	this.step = step; // 1 = c
-	this.accidental = accidental; // 0 = natural
-	this.value = value; // 1 = whole, 2 = half, 4 = quarter etc. 
-	this.dotsCount = dotsCount; 
+var NoteRest = function(isNote, noteNr, blwabv , ticksPos, ticksLength){
+	this.isNote = isNote;
+	this.noteNr = noteNr; // Middle c = 60 ( midi standard)
+	this.blwabv = blwabv; // -1=if not in scale, note below with sharp/nat. 1: above 0:no opinioni.
+	this.forceAcc = false;
+	this.shownAcc = 99;
+	this.ticksPos = ticksPos;
+	this.ticksLength = ticksLength; 
 	this.leftX = 0;
-	this.upperY = 4.5; // C4 position with a G clef
+	this.upperY;
 	this.type = "note";
 	this.imgNr;
 	this.forcedStemDir = 0;
 	this.stemDir;
 	this.calcUpperY();
-	this.setNoteImg();
-	this.setStem();
+	if(this.isNote){ 
+		this.setNoteImg(); 
+		this.setStem();
+	}
+	else{ this.setRestImg(); }
 };
 
-Note.prototype.calcUpperY = function(){ 	
+NoteRest.prototype.calcUpperY = function(){ 	
 	//Calculating the upperY based on the pitch:
 	// Offset from G clef not yet added
 	this.upperY -= ((this.octave - 4) * 3.5);
 	this.upperY -= (this.step-1) * 0.5;
 };
 
-Note.prototype.setNoteImg = function(){
-	if(this.value == 2){this.imgNr = 1; }
-	else if(this.value > 2){ this.imgNr = 0; }
+NoteRest.prototype.setNoteImg = function(){
+	if(this.ticksLength < 2 * Q_NOTE){
+		this.imgNr = 0;
+	}
+	else if(this.ticksLength >= 2 * Q_NOTE && this.ticksLength < 4 * Q_NOTE){
+		this.imgNr = 1; 
+	}
+	else{ 
+		this.imgNr = 2; 
+	}
 };
 
-Note.prototype.setStem = function(){
+NoteRest.prototype.setRestImg = function(){
+	if(this.ticksLength >= 2 * Q_NOTE && this.ticksLength < 4 *Q_NOTE){
+		this.imgNr = -1;
+	}
+	else{
+		this.imgNr = -2;
+	}
+};
+
+NoteRest.prototype.setStem = function(){
 	if(this.upperY > -2){ 
 		this.stemDir = 1; 
 		this.stemX = this.leftX;
@@ -394,3 +623,10 @@ Note.prototype.setStem = function(){
 	this.stemY = this.upperY + 0.5;
 };
 
+var noteIsInCScale = function(noteNr){
+	var scaleStep = noteNr % 12;
+	if(scaleStep == 1 || scaleStep == 3 || scaleStep == 6 || scaleStep == 8 || scaleStep == 10){
+		return false;	
+	}
+	else { return true; }
+};
