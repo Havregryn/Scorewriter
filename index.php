@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="scorestyle.css">
         <script src="scorewriter.js"></script>
     </head>
-    <body onresize="viewResize()">  
+    <body>  
     </body>
 
 </html>
