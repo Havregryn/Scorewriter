@@ -11,7 +11,7 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =40; // The main zoom level: Spacing between lines in a staff
+var spacingPx =20; // The main zoom level: Spacing between lines in a staff
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 32; // Releated to spacing
 var stemW = spacingPx/30;
@@ -46,7 +46,7 @@ window.onload = function(){
 
 	for (var i = 0; i < 8; i++){
 		systemMeasures.push(new SystemMeasure());
-		systemMeasures[i].staffMeasures.push(new Staff_Measure(4,4, 0, 50)); 
+		systemMeasures[i].staffMeasures.push(new Staff_Measure(4,4, 0, 51)); 
 		// Setting ref to "parent" SystemMeasure in staff_measure:
 		systemMeasures[i].staffMeasures[0].systemMeasure = systemMeasures[i];
 	}
@@ -65,11 +65,10 @@ window.onload = function(){
 
 	//staffMeasures[1].showInitKey = true;
 
+	staffm0.addMusic(new NoteRest(true, 55, 0, 0, Q_NOTE/2));		
+	staffm0.addMusic(new NoteRest(true, 57, 0, Q_NOTE * 0.5, Q_NOTE/2));
 
-	staffm0.addMusic(new NoteRest(true, 60, 0, 0, Q_NOTE/2));		
-	staffm0.addMusic(new NoteRest(true, 62, 0, Q_NOTE * 0.5, Q_NOTE/2));
-
-	staffm0.addMusic(new NoteRest(true, 64, 0, Q_NOTE, Q_NOTE/2));
+	staffm0.addMusic(new NoteRest(true, 59, 0, Q_NOTE, Q_NOTE/2));
 	staffm0.addMusic(new NoteRest(true, 65, 0, Q_NOTE*1.5, Q_NOTE/2));	
 	
 	staffm0.addMusic(new NoteRest(true, 67, 0, Q_NOTE * 2, Q_NOTE/2));
@@ -95,7 +94,10 @@ window.onload = function(){
 	staffm3.addMusic(new NoteRest(true, 86, 0, Q_NOTE *3  , Q_NOTE));	
 	
 
-	staffm4.addMusic(new NoteRest(true, 88, 0, 0, Q_NOTE * 4));	
+	staffm4.addMusic(new NoteRest(true, 72, 0, 0, Q_NOTE * 2));
+	staffm4.addMusic(new NoteRest(true, 60, 0, Q_NOTE * 2, Q_NOTE * 2));
+
+
 
 	staffm5.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
 	staffm6.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
@@ -543,13 +545,10 @@ Staff_Measure.prototype.buildGraphic = function(){
 					// Calculating stem:
 			if(noteRest.ticksLength < Q_NOTE * 4){
 				var info = itemImagesInfo[0];
-				noteRest.stemLength = -3.5;
-				if(noteRest.Ypos <= 1){ noteRest.stemLength = 3.5; }
-				if(noteRest.Ypos > 5){
-					noteRest.stemLength = noteRest.Ypos - 2.5;;
-				}
-				else if(noteRest.Ypos < -2){
-					noteRest.stemLength = 1.5  -  noteRest.Ypos;
+				noteRest.stemLength = -3;
+				if(noteRest.Ypos <= 1){ noteRest.stemLength = 4; }
+				if(noteRest.Ypos > 4.5 || noteRest.Ypos < -1.5){
+					noteRest.stemLength = 2 - noteRest.Ypos;
 				}
 				//alert("Stem length = " + noteRest.stemLength);
 				
@@ -562,6 +561,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 					noteRest.stemXoffset = itemImagesInfo[noteRest.imgNr].param2;
 					noteRest.stemYoffset = itemImagesInfo[noteRest.imgNr].param4;
 				}
+				noteRest.stemLength -= noteRest.stemYoffset;
 			}
 		}
 		else{
@@ -675,6 +675,40 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 				}
 			}
 			*/
+
+
+
+//Drawing ledger lines:
+			var staffLowY = topY + 4 * spacingPx;
+			var ledgeDelta = 1.35;
+			if(noteRest.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
+			if(notePosY > staffLowY){
+				var noOfLines = 0.5 + ((notePosY - staffLowY) / spacingPx);
+				context.lineWidth = lineW;
+				context.beginPath();
+				for(i = 1; i <= noOfLines; i++){
+					context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4,  staffLowY + i * spacingPx);
+					context.lineTo(notePosX + spacingPx * ledgeDelta, staffLowY + i * spacingPx);	
+				}
+				context.stroke();
+			}
+			else if(notePosY < topY - spacingPx){	
+				var noOfLines = ((topY - notePosY) / spacingPx) - 0.5;
+				context.lineWidth = lineW;
+				context.beginPath();
+				for(i = 1; i <= noOfLines; i++){
+					context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4, topY - i * spacingPx);
+					context.lineTo(notePosX + spacingPx * ledgeDelta, topY - i * spacingPx);	
+				}
+				context.stroke();
+			}
+
+
+
+
+
+
+
 			renderImage(noteRest.imgNr, notePosX, notePosY);
 		}
 		else{
