@@ -21,6 +21,7 @@ var imagesCount = 100; // The number of images
 var itemImages = [imagesCount]; // All images of the notation items.
 var itemImagesInfo = [imagesCount]; // Scaling data etc.
 var systemMeasures = []; // All system measures
+var score; // The current active score
 
 // Table setting the Y axis offsets of the noteNr´s in a GClef.(noteRest.topY against top line in staff)
 //                      C   C#    D    Eb   E    F     F#    G   G#     A     Bb     B
@@ -44,6 +45,33 @@ window.onload = function(){
 		
 	loadImgs();
 
+
+	// TESTING OF PURE MUSIC CONCEPT, all music kept in staff object, no bars/keys etc.
+	// Separation between pure music and visual elements
+	// Keysig, clef, timeSig, key are visual elements, do note change actual music.
+	score = new Score();
+	score.masterStaff = new MasterStaff();
+
+	score.masterStaff.insertKey(new Key(4, 0, 0)); // Key, QnotePos, ticksPos
+	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
+
+	score.staffs[0] = new Staff(this.masterStaff);
+	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
+	score.appendMusic(new PureNoteRest([60], 1, 0),0); // noteNrArray, qNoteLength, ticksLength
+	score.appendMusic(new PureNoteRest([62], 1, 0),0);
+	score.appendMusic(new PureNoteRest([64], 1, 0),0);
+	score.appendMusic(new PureNoteRest([67], 1, 0),0);
+	score.appendMusic(new PureNoteRest([72], 4, 0),0);
+
+	score.appendMeasures(4);
+	
+
+
+
+
+/*
+
+	// OLD CONCEPT: MUSIC KEPT IN MEASURES:
 	for (var i = 0; i < 8; i++){
 		systemMeasures.push(new SystemMeasure());
 		systemMeasures[i].staffMeasures.push(new Staff_Measure(4,4, 0, 51)); 
@@ -102,6 +130,7 @@ window.onload = function(){
 	staffm5.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
 	staffm6.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
 	staffm7.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
+*/
 };
 
 
@@ -189,13 +218,15 @@ var render = function(redraw){
 
 	var currentX = 50; // The starting pixel of current measure
 	var length; // The total length of the bar in pixels:
-	for(var i = 0; i < systemMeasures.length; i++){
-				var sysMeas = systemMeasures[i];
-				if(!redraw){ sysMeas.buildGraphic(); }
-				var inner = emptyBarMinSpace;
-				length = (sysMeas.leftMarginWidth + inner + sysMeas.rightMarginWidth) * spacingPx;
-				sysMeas.render(currentX, 200, length, redraw);
-				currentX += length;
+	for(var i = 0; i < score.systemMeasures.length; i++){
+		var sysMeas = score.systemMeasures[i];
+		alert("SysMeas lefMW: " + sysMeas.leftMarginWidth);
+		if(!redraw){ sysMeas.buildGraphic(); }
+		var inner = emptyBarMinSpace;
+		length = (sysMeas.leftMarginWidth + inner + sysMeas.rightMarginWidth) * spacingPx;
+		sysMeas.render(currentX, 200, length, redraw);
+		currentX += length;
+		alert("Current x " + currentX);
 	}
 };
 
@@ -209,10 +240,55 @@ var renderImage = function(imageNr, leftX, upperY){
 };
 
 
+var Score = function(){
+	// Container class for all data related to one score:
+	// Score settings, music, graphic details.
+	
+	this.systemMeasures = [];
+	this.masterStaff; 
+	this.staffs = [];
+	this.qNoteEndPureMusic = 0;
+	this.ticksEndPureMusic = 0;
+}
+
+Score.prototype.appendMusic = function(pureNoteRest, staffNr){
+	var stAtIx = this.staffs[staffNr];
+	stAtIx.appendMusic(pureNoteRest);
+
+	// Adjusting the total length accordingly:
+	var stAtIxEnd = stAtIx.qNoteEnd * Q_NOTE + stAtIx.ticksEnd;
+	if(stAtIxEnd > this.qNoteEndPureMusic * Q_NOTE + this.ticksEndPureMusic){
+		this.qNoteEndPureMusic = stAtIx.qNoteEnd;
+		this.ticksEndPureMusic = stAtIx.ticksEnd;
+	}
+	//alert("Length: " + this.qNoteEndPureMusic + " , " + this.ticksEndPureMusic);
+};
+
+
+
+
+
+
+Score.prototype.appendMeasures = function(numberOfMeasures){ 
+	
+	for(var i = 0; i < numberOfMeasures; i++){
+		var newSysMes = new SystemMeasure(this.masterStaff);
+		this.systemMeasures.push(new SystemMeasure(newSysMes));
+		for(var i2 = 0; i2 < this.staffs.length; i2++){
+			newSysMes.staffMeasures.push(this.staffs[i2].appendMeasure(newSysMes));			
+	//	alert("Staff Measures in SysMes array: " + newSysMes.staffMeasures.length);
+		
+		}
+	}	
+	
+}; 
+
+
 
 // Measure stores all the staffMeasures in a bar. It keeps track of horizontal spacing of the music
 // and all System items connected to one single bar.
-var SystemMeasure = function(){
+var SystemMeasure = function(masterStaff){
+	this.masterStaff = masterStaff;
 	this.staffMeasures = [];
 	this.ticks = []; //Stores info about specific ticks: width
 	this.leftMarginWidth = 0; // no of spacings.
@@ -238,7 +314,7 @@ SystemMeasure.prototype.updateTick = function(ticksPos, width){
 };
 
 SystemMeasure.prototype.buildGraphic = function(){
-	
+	alert("SysMes Build Graphic");
 	var staffMeas;
 	// Calculating space needed for starting clef, key sign and time sign.
 	for(var i = 0; i < this.staffMeasures.length; i++){
@@ -279,39 +355,141 @@ SystemMeasure.prototype.buildGraphic = function(){
 };
 
 SystemMeasure.prototype.render = function(leftX, topY, width, redraw){
+	alert("System measure render, staffMeasures: " + this.staffMeasures.length);
 	for(var i = 0; i < this.staffMeasures.length; i++){
+		alert("System Measure render loop");
 		this.staffMeasures[i].render(leftX, topY, width, redraw);
 	}
 }
 
 
-// Staff types: 1: regular 5 lines.
-var Staff = function(type){
-	this.type = type;
-	this.staffMeasures = [];
+// Masterstaff contains System info: tempo, repeat, timeSigs, time signature.
+var MasterStaff = function(){
+	this.keys = [];
+	this.timeSigs = [];
+	
 };
 
-Staff.prototype.render = function(leftX, rightX, upperY){
-	context.strokeStyle = "black";
-	context.lineWidth = "1";
-	var lineNr;
-	var lineX;
-	for(lineNr = 0; lineNr < 5; lineNr++){
-		context.beginPath();
-		context.moveTo(leftX, upperY + (lineNr * spacingPx));
-		context.lineTo(rightX, upperY + (lineNr * spacingPx));
-		context.stroke();
+MasterStaff.prototype.insertTimeSignature = function(newTimeSignature){
+	var newTimeSigTotalTicks = newTimeSignature.qNotePos * Q_NOTE + newTimeSignature.ticksPos;  
+	if(this.timeSigs.length == 0 || 
+	   this.timeSigs[this.timeSigs.length-1].qNotePos * Q_NOTE + this.timeSigs[this.timeSigs.length-1].ticksPos < newTimeSigTotalTicks){
+		this.timeSigs.push(newTimeSignature); 
+	}
+	else{
+		for(var i = 0; i < this.timeSigs.length; i++){ 
+			var timeSigAtIx = this.timeSigs[i];
+			if(timeSigAtIx.qNotePos * Q_NOTE + timeSigAtIx.ticksPos == newTimeSigTotalTicks){
+				this.timeSigs.splice(i, 1, newTimeSignature);
+				break;
+			}
+			else if(timeSigAtIx.qNotePos * Q_NOTE + timeSigAtIx.ticksPos > newTimeSigTotalTicks){
+				this.timeSigs.splice(i, 0, newTimeSignature);
+				break;	
+			}
+		}
+	}
+};
+
+MasterStaff.prototype.insertKey = function(newKey){
+	var newKeyTotalTicks = newKey.qNotePos * Q_NOTE + newKey.ticksPos;  
+	if(this.keys.length == 0 || 
+	   this.keys[this.keys.length-1].qNotePos * Q_NOTE + this.keys[this.keys.length-1].ticksPos < newKeyTotalTicks){
+		this.keys.push(newKey); 
+	}
+	else{
+		for(var i = 0; i < this.keys.length; i++){ 
+			var keyAtIx = this.keys[i];
+			if(keyAtIx.qNotePos * Q_NOTE + keyAtIx.ticksPos == newKeyTotalTicks){
+				this.keys.splice(i, 1, newKey);
+				break;
+			}
+			else if(keyAtIx.qNotePos * Q_NOTE + keyAtIx.ticksPos > newKeyTotalTicks){
+				this.keys.splice(i, 0, newKey);
+				break;	
+			}
+		}
 	}
 };
 
 
-var Staff_Measure = function(topMeter, bottomMeter, key, clefNr){
+// Staff contains staff-related info: pureMusic,clefs and other elements which relates to a range of bars.
+var Staff = function(masterStaff){
+	this.masterStaff = masterStaff;
+	this.pureMusic = [];
+	this.staffMeasures = [];
+	this.clefs = [];
+	this.qNoteEnd = 0; //last qNote + tick of pureMusic (or rest)
+	this.ticksEnd = 0;
+};
+
+Staff.prototype.appendMusic = function(pureNoteRest){
+	this.pureMusic.push(pureNoteRest);
+	this.qNoteEnd += pureNoteRest.qNoteLength;
+	this.qnoteEnd += Math.floor((this.ticksEnd + pureNoteRest.ticksLength) / Q_NOTE);
+	this.ticksEnd = (this.ticksEnd + pureNoteRest.ticksLength) % Q_NOTE;
+	//alert("Musikk lengde: " + this.qNoteEnd + ", " + this.ticksEnd);
+};
+
+Staff.prototype.overwriteMusic = function(pureNoteRest, qNotePos, ticksPos){
+	
+};
+
+Staff.prototype.insertMusic = function(pureNoterest, qNotePos, ticksPos){
+	
+};
+
+Staff.prototype.appendMeasure = function(systemMeasure){
+	var newStM = new Staff_Measure(4,4, 3, 50, this);
+	this.staffMeasures.push(newStM);
+	return newStM;
+};
+
+Staff.prototype.getClefAtPos = function(qNotePos, ticksPos){
+	var totalTicksPos = qNotePos * Q_NOTE + ticksPos; 
+	var clef, clefTotalTicksPos;
+	for(var i = 0; i < this.clefs.length; i++){
+		clefTotalTicksPos = this.clefs[i].qNotePos * Q_NOTE + this.clefs[i].ticksPos;
+		if(i = this.clefs.length - 1 || clefTotalTicksPos > totalTicksPos){
+			clef = this.clefs[i - 1];
+			break;
+		} 
+	}
+	return clef
+};
+
+
+
+Staff.prototype.insertClef = function(newClef){
+	var newClefTotalTicks = newClef.qNotePos * Q_NOTE + newClef.ticksPos;  
+	if(this.clefs.length == 0 || 
+	   this.clefs[this.clefs.length-1].qNotePos * Q_NOTE + this.clefs[this.clefs.length-1].ticksPos < newClefTotalTicks){
+		this.clefs.push(newClef); 
+	}
+	else{
+		for(var i = 0; i < this.clefs.length; i++){ 
+			var clefAtIx = this.clefs[i];
+			if(clefAtIx.qNotePos * Q_NOTE + clefAtIx.ticksPos == newClefTotalTicks){
+				this.clefs.splice(i, 1, newClef);
+				break;
+			}
+			else if(clefAtIx.qNotePos * Q_NOTE + clefAtIx.ticksPos > newClefTotalTicks){
+				this.clefs.splice(i, 0, newClef);
+				break;	
+			}
+		}
+	}
+};
+
+var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff){
 	this.systemMeasure;
 	this.topMeter = topMeter;
 	this.bottomMeter = bottomMeter;
 	this.totalTicks = (4 / bottomMeter) * Q_NOTE * topMeter;  
 	this.key = key;// in fifths from c
 	this.clefNr = clefNr; // The initial clef
+	this.staff = staff; // To get access to clef list etc.
+	//this.systemMeasure = systemMeasure; 
 	this.pitchOffset = 0;
 	this.keyOffset = 0;
 	this.showInitClef = false;
@@ -404,7 +582,7 @@ Staff_Measure.prototype.addTmpAcc = function(tmpA){
 
 //Method to be called when a staff measure has been created or edited:
 Staff_Measure.prototype.buildGraphic = function(){
-		
+	alert("Staff measure build graphic");	
 	this.pitchOffset = itemImagesInfo[this.clefNr].param1;
 	this.keyOffset = itemImagesInfo[this.clefNr].param2;
 
@@ -581,7 +759,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 // It is new, it has been edited or the view  has been changed..
 Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	// Redraw is true if Staff_Measure is has been drawn before
-
+	alert("Staff Measure render");
 	// lines:
 	context.strokeStyle = "black";
 	var lineW = spacingPx/50;
@@ -657,26 +835,6 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			context.lineTo(stemXpx, stemYstartPx + (noteRest.stemLength * spacingPx));
 			context.stroke();
 			
-			/*
-			if(notePosY > topY + spacingPx){
-				context.moveTo(notePosX + info.param2 * spacingPx, notePosY + (info.param4 * spacingPx));
-				context.lineTo(notePosX + info.param2 * spacingPx, notePosY - (noteRest.stemLength * spacingPx));
-				context.stroke();
-				if(noteRest.ticksLength < Q_NOTE){
-					renderImage(10, notePosX, notePosY - (noteRest.stemLength * spacingPx));
-				}
-			}
-			else{					
-				context.moveTo(notePosX + info.param1 * spacingPx, notePosY + (info.param3 * spacingPx));
-				context.lineTo(notePosX + info.param1 * spacingPx, notePosY + (noteRest.stemLength * spacingPx) + spacingPx );
-				context.stroke();
-				if(noteRest.ticksLength < Q_NOTE){
-					renderImage(11, notePosX, notePosY + (noteRest.stemLength * spacingPx));i
-				}
-			}
-			*/
-
-
 
 //Drawing ledger lines:
 			var staffLowY = topY + 4 * spacingPx;
@@ -901,13 +1059,24 @@ var GraphicItem = function(imgNr, posRef, leftX, upperY){
 	this.type = "image";
 };
 
-var TimeSignature = function(topNr, botNr, posRef, leftX, upperY){
+var TimeSignature = function(topNr, botNr, qNotePos, ticksPos){
 	this.topNr = topNr;
 	this.botNr = botNr;
-	this.posRef = posRef;
-	this.leftX = leftX;
-	this.upperY = upperY;
-	this.type = "time signature";
+	this.qNotePos = qNotePos;
+	this.ticksPos = ticksPos;
+	this.type = "timeSignature";
+};
+
+var Key = function(keyNr, qNotePos, ticksPos){
+	this.keyNr = keyNr;
+	this.qNotePos = qNotePos;
+	this.ticksPos = ticksPos;
+};
+
+var Clef = function(clefNr, qNoteNr, ticksPos){
+	this.clefNr = clefNr;
+	this.qNoteNr = qNoteNr;
+	this.ticksPos = ticksPos;
 };
 
 
@@ -926,7 +1095,16 @@ var NoteRest = function(isNote, noteNr, blwabv , ticksPos, ticksLength){
 	this.stemLength = 0;
 	this.stemXoffset;
 	this.stemYoffset;
+	this.type = "noteRest";
 };
+
+var PureNoteRest = function(noteNrArray, qNoteLength, ticksLength){
+		this.noteNrArray = noteNrArray;
+		this.qNoteLength = qNoteLength;
+		this.ticksLength = ticksLength;
+};
+
+
 
 // Function to tell if a noteNr is a natural:
 var noteIsInCScale = function(noteNr){
