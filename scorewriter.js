@@ -11,7 +11,9 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =20; // The main zoom level: Spacing between lines in a staff
+var spacingPx =12; // The main zoom level: Spacing between lines in a staff
+var systemSpacing = 15;
+var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 32; // Releated to spacing
 var stemW = spacingPx/30;
@@ -63,74 +65,21 @@ window.onload = function(){
 	score.appendMusic(new PureNoteRest([67], 1, 0),0);
 	score.appendMusic(new PureNoteRest([72], 4, 0),0);
 
-	score.appendMeasures(4);
-	
+	score.appendMeasures(32);
 
-
-
-
-/*
-
-	// OLD CONCEPT: MUSIC KEPT IN MEASURES:
-	for (var i = 0; i < 8; i++){
-		systemMeasures.push(new SystemMeasure());
-		systemMeasures[i].staffMeasures.push(new Staff_Measure(4,4, 0, 51)); 
-		// Setting ref to "parent" SystemMeasure in staff_measure:
-		systemMeasures[i].staffMeasures[0].systemMeasure = systemMeasures[i];
+	score.addPart();
+	score.parts[0].addPage();
+	for(var i = 0; i < score.systemMeasures.length; i++){
+		score.sendSysMeasureToParts(score.systemMeasures[i], 0);
 	}
-	var staffm0 = systemMeasures[0].staffMeasures[0];
-	var staffm1 = systemMeasures[1].staffMeasures[0];
-	var staffm2 = systemMeasures[2].staffMeasures[0];
-	var staffm3 = systemMeasures[3].staffMeasures[0];
-	var staffm4 = systemMeasures[4].staffMeasures[0];
-	var staffm5 = systemMeasures[5].staffMeasures[0];
-	var staffm6 = systemMeasures[6].staffMeasures[0];
-	var staffm7 = systemMeasures[7].staffMeasures[0];
-
-	staffm0.showInitClef = true;
-	staffm0.showInitKey = true;
-	staffm0.showInitTimeSig = true;
-
-	//staffMeasures[1].showInitKey = true;
-
-	staffm0.addMusic(new NoteRest(true, 55, 0, 0, Q_NOTE/2));		
-	staffm0.addMusic(new NoteRest(true, 57, 0, Q_NOTE * 0.5, Q_NOTE/2));
-
-	staffm0.addMusic(new NoteRest(true, 59, 0, Q_NOTE, Q_NOTE/2));
-	staffm0.addMusic(new NoteRest(true, 65, 0, Q_NOTE*1.5, Q_NOTE/2));	
-	
-	staffm0.addMusic(new NoteRest(true, 67, 0, Q_NOTE * 2, Q_NOTE/2));
-	staffm0.addMusic(new NoteRest(true, 69, 0, Q_NOTE * 2.5, Q_NOTE/2));		
-	staffm0.addMusic(new NoteRest(true, 71, 0, Q_NOTE * 3, Q_NOTE/2));
-	staffm0.addMusic(new NoteRest(true, 72, 0, Q_NOTE*3.5, Q_NOTE/2));	
-
-	staffm1.addMusic(new NoteRest(true, 67, 0, 0, Q_NOTE));
-	staffm1.addMusic(new NoteRest(true, 69, 0, Q_NOTE , Q_NOTE));		
-	staffm1.addMusic(new NoteRest(true, 71, 0, Q_NOTE*2, Q_NOTE));
-	staffm1.addMusic(new NoteRest(true, 72, 0, Q_NOTE * 3 , Q_NOTE));	
 
 
-	staffm2.addMusic(new NoteRest(true, 74, 0, 0, Q_NOTE));
-	staffm2.addMusic(new NoteRest(true, 76, 0, Q_NOTE , Q_NOTE));		
-	staffm2.addMusic(new NoteRest(true, 77, 0, Q_NOTE*2, Q_NOTE));
-	staffm2.addMusic(new NoteRest(true, 79, 0, Q_NOTE * 3 , Q_NOTE));	
+
 	
 
-	staffm3.addMusic(new NoteRest(true, 81, 0, 0, Q_NOTE));
-	staffm3.addMusic(new NoteRest(true, 83, 0, Q_NOTE , Q_NOTE));		
-	staffm3.addMusic(new NoteRest(true, 84, 0, Q_NOTE*2, Q_NOTE));
-	staffm3.addMusic(new NoteRest(true, 86, 0, Q_NOTE *3  , Q_NOTE));	
-	
-
-	staffm4.addMusic(new NoteRest(true, 72, 0, 0, Q_NOTE * 2));
-	staffm4.addMusic(new NoteRest(true, 60, 0, Q_NOTE * 2, Q_NOTE * 2));
 
 
 
-	staffm5.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
-	staffm6.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
-	staffm7.addMusic(new NoteRest(false,70, 0, 0, Q_NOTE * 4));
-*/
 };
 
 
@@ -203,31 +152,35 @@ window.onresize = function(event){
 };	
 
 var viewResize = function(redraw){	
-	width = window.innerWidth - 20;
-	height = window.innerHeight - 20;
-	canvas.width = width * 4;
-	canvas.height = height * 4;
+	//width = window.innerWidth - 20;
+	//height = window.innerHeight - 20;
+	width = 2000;
+	height = width * Math.sqrt(2);
+	canvas.width = width;
+	canvas.height = height;
 	render(redraw);
 };
 
 var render = function(redraw){
+	score.render();
+	context.scale(drawScale, drawScale);
 	context.strokeStyle = "black";
 	context.font = "50px Baskerville";
 	context.textAlign = "left";
 	context.fillText("My Kind of Music", 50, 50);
-
+	
+	/*
 	var currentX = 50; // The starting pixel of current measure
 	var length; // The total length of the bar in pixels:
 	for(var i = 0; i < score.systemMeasures.length; i++){
 		var sysMeas = score.systemMeasures[i];
-		alert("SysMeas lefMW: " + sysMeas.leftMarginWidth);
 		if(!redraw){ sysMeas.buildGraphic(); }
 		var inner = emptyBarMinSpace;
 		length = (sysMeas.leftMarginWidth + inner + sysMeas.rightMarginWidth) * spacingPx;
 		sysMeas.render(currentX, 200, length, redraw);
 		currentX += length;
-		alert("Current x " + currentX);
 	}
+	*/
 };
 
 var renderImage = function(imageNr, leftX, upperY){
@@ -243,10 +196,15 @@ var renderImage = function(imageNr, leftX, upperY){
 var Score = function(){
 	// Container class for all data related to one score:
 	// Score settings, music, graphic details.
+	//
+	// What about parts?
+	// Need one main score file with all neccessary details for the parts and score
+	// The parts are different views of the same data.
 	
 	this.systemMeasures = [];
 	this.masterStaff; 
 	this.staffs = [];
+	this.parts = [];
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
 }
@@ -264,24 +222,136 @@ Score.prototype.appendMusic = function(pureNoteRest, staffNr){
 	//alert("Length: " + this.qNoteEndPureMusic + " , " + this.ticksEndPureMusic);
 };
 
-
-
-
-
-
 Score.prototype.appendMeasures = function(numberOfMeasures){ 
 	
 	for(var i = 0; i < numberOfMeasures; i++){
 		var newSysMes = new SystemMeasure(this.masterStaff);
-		this.systemMeasures.push(new SystemMeasure(newSysMes));
+		this.systemMeasures.push(newSysMes);
 		for(var i2 = 0; i2 < this.staffs.length; i2++){
 			newSysMes.staffMeasures.push(this.staffs[i2].appendMeasure(newSysMes));			
-	//	alert("Staff Measures in SysMes array: " + newSysMes.staffMeasures.length);
 		
 		}
 	}	
 	
-}; 
+};
+
+Score.prototype.updateMeasures = function(qNotefrom, ticksFrom, qNoteTo, ticksTo){
+	// This function updates the content of the measures in the given range
+	// If to = 0 : Updating everythin after qNote/ticks from.
+	
+	// 1) Calculate the first affected measures
+	// 3) Call the SystemMeasure.update(qNote/ticksStart, lastqNote/tick of prev measure, )
+	//    of the relevant measuresi. Append Systemmeasures if neccessary.
+};
+
+Score.prototype.sendSysMeasureToParts = function(sysMeasure, sysMeasureNr){
+		this.parts[0].receiveSysMeasure(sysMeasure, sysMeasureNr);
+};
+
+
+Score.prototype.addPart = function(){
+	this.parts.push(new Part);
+};
+
+
+Score.prototype.render = function(){
+	this.parts[0].render();
+}
+
+
+var Part = function(){
+	// A Part object represents a part OR the full score.
+	this.pages = [];
+};
+
+Part.prototype.addPage = function(){
+	this.pages.push(new Page());
+};
+
+Part.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
+	this.pages[0].receiveSysMeasure(sysMeasure, sysMeasureNr);
+};
+
+Part.prototype.render = function(){
+	this.pages[0].render(0, 0 , 1280, false);
+};
+
+var Page = function(){
+	// 	A page object represents one page in the score
+	// 	In panorama view there is only one page with adaptive size
+	this.widthPx;
+	this.heightPx;
+	this.leftMargin = 0.06; // 1 is full page width, 0.1 is 1/10 of page width
+	this.rightMargin = 0.06;
+	this.topMargin = 0.08;
+	this.bottomMargin = 0.07;
+	this.systems = [];
+
+};
+
+Page.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
+	if(this.systems.length == 0){
+		this.systems.push(new System(this));
+		this.systems[0].receiveSysMeasure(sysMeasure, sysMeasureNr);
+	}
+	else{
+		if(!this.systems[this.systems.length - 1].receiveSysMeasure(sysMeasure, sysMeasureNr)){
+			this.systems.push(new System(this));
+			this.systems[this.systems.length - 1].receiveSysMeasure(sysMeasure, sysMeasureNr);
+		}
+	}
+};
+
+Page.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
+	var heightPx = Math.floor(widthPx * Math.sqrt(2));
+	var leftMarginPx = leftXPx + widthPx * this.leftMargin;
+	var innerWidthPx = widthPx * (1 - this.leftMargin - this.rightMargin);
+	var topMarginPx = topYPx + heightPx * this.topMargin;
+	var innerHeightPx = heightPx * (1 - this.topMargin - this.bottomMargin);
+
+	// Drawing outline and margin:
+	context.strokeStyle = "black";
+	context.beginPath();
+	context.rect(leftXPx, topYPx, widthPx, heightPx);
+	context.stroke();
+	
+	context.strokeStyle = "grey";
+	context.beginPath();
+	context.rect(leftMarginPx, topMarginPx, innerWidthPx, innerHeightPx);
+	context.stroke();
+
+	for(var i = 0; i < this.systems.length; i++){
+		this.systems[i].render(leftMarginPx, topMarginPx + (i * spacingPx * systemSpacing), innerWidthPx, innerHeightPx); 
+	}
+
+
+
+};
+
+
+var System = function(page){
+	// A system object represents one system of staffs on the page.	
+	this.page = page;
+	this.systemMeasures = [];
+};
+
+System.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
+	if(this.systemMeasures.length < 4){
+		this.systemMeasures.push(sysMeasure);
+		return true;
+	}
+	return false;
+};
+
+System.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
+	var measLeftXPx, measWidthPx;
+	measWidthPx = widthPx / this.systemMeasures.length;
+	measLeftXPx = leftXPx;
+	for(var i = 0; i < this.systemMeasures.length; i++){
+		this.systemMeasures[i].render(measLeftXPx, topYPx, measWidthPx, redraw);
+		measLeftXPx += measWidthPx;
+	}	
+};
 
 
 
@@ -314,7 +384,6 @@ SystemMeasure.prototype.updateTick = function(ticksPos, width){
 };
 
 SystemMeasure.prototype.buildGraphic = function(){
-	alert("SysMes Build Graphic");
 	var staffMeas;
 	// Calculating space needed for starting clef, key sign and time sign.
 	for(var i = 0; i < this.staffMeasures.length; i++){
@@ -355,12 +424,17 @@ SystemMeasure.prototype.buildGraphic = function(){
 };
 
 SystemMeasure.prototype.render = function(leftX, topY, width, redraw){
-	alert("System measure render, staffMeasures: " + this.staffMeasures.length);
-	for(var i = 0; i < this.staffMeasures.length; i++){
-		alert("System Measure render loop");
+		for(var i = 0; i < this.staffMeasures.length; i++){
 		this.staffMeasures[i].render(leftX, topY, width, redraw);
 	}
-}
+};
+
+SystemMeasure.prototype.updateContent = function(){
+	// Updates the content of this measure.
+	// 1) Update time signature/Key
+	// 2) Call each staff´s updateContent
+	// 3) Calls updateGraphic(?)
+};
 
 
 // Masterstaff contains System info: tempo, repeat, timeSigs, time signature.
@@ -440,7 +514,7 @@ Staff.prototype.insertMusic = function(pureNoterest, qNotePos, ticksPos){
 };
 
 Staff.prototype.appendMeasure = function(systemMeasure){
-	var newStM = new Staff_Measure(4,4, 3, 50, this);
+	var newStM = new Staff_Measure(4,4, 3, 50, this, systemMeasure);
 	this.staffMeasures.push(newStM);
 	return newStM;
 };
@@ -481,8 +555,9 @@ Staff.prototype.insertClef = function(newClef){
 	}
 };
 
-var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff){
-	this.systemMeasure;
+var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMeasure){
+	//alert("opprettelse av Staff_Measure");
+	this.systemMeasure = systemMeasure;
 	this.topMeter = topMeter;
 	this.bottomMeter = bottomMeter;
 	this.totalTicks = (4 / bottomMeter) * Q_NOTE * topMeter;  
@@ -581,8 +656,7 @@ Staff_Measure.prototype.addTmpAcc = function(tmpA){
 }
 
 //Method to be called when a staff measure has been created or edited:
-Staff_Measure.prototype.buildGraphic = function(){
-	alert("Staff measure build graphic");	
+Staff_Measure.prototype.buildGraphic = function(){	
 	this.pitchOffset = itemImagesInfo[this.clefNr].param1;
 	this.keyOffset = itemImagesInfo[this.clefNr].param2;
 
@@ -759,7 +833,6 @@ Staff_Measure.prototype.buildGraphic = function(){
 // It is new, it has been edited or the view  has been changed..
 Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	// Redraw is true if Staff_Measure is has been drawn before
-	alert("Staff Measure render");
 	// lines:
 	context.strokeStyle = "black";
 	var lineW = spacingPx/50;
