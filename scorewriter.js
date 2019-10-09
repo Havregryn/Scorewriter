@@ -54,7 +54,7 @@ window.onload = function(){
 	score = new Score();
 	score.masterStaff = new MasterStaff();
 
-	score.masterStaff.insertKey(new Key(4, 0, 0)); // Key, QnotePos, ticksPos
+	score.masterStaff.insertKey(new Key(-4, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
 
 	score.staffs[0] = new Staff(this.masterStaff);
@@ -65,7 +65,7 @@ window.onload = function(){
 	score.appendMusic(new PureNoteRest([67], 1, 0),0);
 	score.appendMusic(new PureNoteRest([72], 4, 0),0);
 
-	score.appendMeasures(32);
+	score.appendMeasures(33);
 
 	score.addPart();
 	score.parts[0].addPage();
@@ -73,6 +73,8 @@ window.onload = function(){
 		score.sendSysMeasureToParts(score.systemMeasures[i], 0);
 	}
 
+
+	score.buildGraphic();
 
 
 	
@@ -167,7 +169,7 @@ var render = function(redraw){
 	context.strokeStyle = "black";
 	context.font = "50px Baskerville";
 	context.textAlign = "left";
-	context.fillText("My Kind of Music", 50, 50);
+	context.fillText("Oh Well", 50, 50);
 	
 	/*
 	var currentX = 50; // The starting pixel of current measure
@@ -223,16 +225,23 @@ Score.prototype.appendMusic = function(pureNoteRest, staffNr){
 };
 
 Score.prototype.appendMeasures = function(numberOfMeasures){ 
-	
+	var qNoteStartingPoint = 0, ticksStartingPoint = 0;
+	// Finding the startpoint for the first measure added:
+	if(this.systemMeasures.length > 0){
+		
+	}
 	for(var i = 0; i < numberOfMeasures; i++){
-		var newSysMes = new SystemMeasure(this.masterStaff);
+			
+		var newSysMes = new SystemMeasure(this.masterStaff, qNoteStartingPoint, ticksStartingPoint);
 		this.systemMeasures.push(newSysMes);
+		if(this.systemMeasures.length == 1){
+			this.systemMeasures[0].showInitTimeSig = true;
+		}
 		for(var i2 = 0; i2 < this.staffs.length; i2++){
 			newSysMes.staffMeasures.push(this.staffs[i2].appendMeasure(newSysMes));			
 		
 		}
 	}	
-	
 };
 
 Score.prototype.updateMeasures = function(qNotefrom, ticksFrom, qNoteTo, ticksTo){
@@ -253,6 +262,10 @@ Score.prototype.addPart = function(){
 	this.parts.push(new Part);
 };
 
+Score.prototype.buildGraphic = function(){
+	this.parts[0].buildGraphic();
+};
+
 
 Score.prototype.render = function(){
 	this.parts[0].render();
@@ -270,6 +283,10 @@ Part.prototype.addPage = function(){
 
 Part.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
 	this.pages[0].receiveSysMeasure(sysMeasure, sysMeasureNr);
+};
+
+Part.prototype.buildGraphic = function(){
+	this.pages[0].buildGraphic();
 };
 
 Part.prototype.render = function(){
@@ -302,6 +319,12 @@ Page.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
 	}
 };
 
+Page.prototype.buildGraphic = function(){
+	for(var i = 0; i < this.systems.length; i++){
+		this.systems[i].buildGraphic();	
+	}
+};
+
 Page.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
 	var heightPx = Math.floor(widthPx * Math.sqrt(2));
 	var leftMarginPx = leftXPx + widthPx * this.leftMargin;
@@ -315,10 +338,12 @@ Page.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
 	context.rect(leftXPx, topYPx, widthPx, heightPx);
 	context.stroke();
 	
+	/*
 	context.strokeStyle = "grey";
 	context.beginPath();
 	context.rect(leftMarginPx, topMarginPx, innerWidthPx, innerHeightPx);
 	context.stroke();
+	*/
 
 	for(var i = 0; i < this.systems.length; i++){
 		this.systems[i].render(leftMarginPx, topMarginPx + (i * spacingPx * systemSpacing), innerWidthPx, innerHeightPx); 
@@ -338,9 +363,19 @@ var System = function(page){
 System.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
 	if(this.systemMeasures.length < 4){
 		this.systemMeasures.push(sysMeasure);
+		if(this.systemMeasures.length == 1){
+			this.systemMeasures[this.systemMeasures.length - 1].setShowInitKey(true);	
+			this.systemMeasures[this.systemMeasures.length - 1].setShowInitClef(true); 
+		}
 		return true;
 	}
 	return false;
+};
+
+System.prototype.buildGraphic = function(){
+	for(var i = 0; i < this.systemMeasures.length; i++){
+		this.systemMeasures[i].buildGraphic();
+	}
 };
 
 System.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
@@ -357,8 +392,10 @@ System.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
 
 // Measure stores all the staffMeasures in a bar. It keeps track of horizontal spacing of the music
 // and all System items connected to one single bar.
-var SystemMeasure = function(masterStaff){
+var SystemMeasure = function(masterStaff, qNoteStartingPoint, ticksStartingPoint){
 	this.masterStaff = masterStaff;
+	this.qNoteStartingPoint = qNoteStartingPoint;
+	this.ticksStartingPoint = ticksStartingPoint;
 	this.staffMeasures = [];
 	this.ticks = []; //Stores info about specific ticks: width
 	this.leftMarginWidth = 0; // no of spacings.
@@ -366,8 +403,49 @@ var SystemMeasure = function(masterStaff){
 	this.initClefWidth = 0;
 	this.initKeyWidth = 0;
 	this.initTimeWidth = 0;
-	// Bruk heller separat clef, fortegn og taktart bredde.
+	this.timeSignature;
+	this.key;
+
+	this.showInitTimeSig = false;
+	this.showInitKey = false;
+	this.showInitClef = false;
+
+	this.updateTimeSig();
+	this.updateKey();
 }
+
+SystemMeasure.prototype.updateTimeSig = function(){
+	//alert(this.masterStaff.timeSigs.length);
+	this.timeSignature = this.masterStaff.getTimeSignatureAt(this.qNoteStartingPoint, this.ticksStartingPoint);	
+	//this.timeSignature = new TimeSignature(4,4, 0,0);
+};
+
+SystemMeasure.prototype.updateKey = function(){
+	this.key = this.masterStaff.getKeyAt(this.qNoteStartingPoint, this.ticksStartingPoint);
+	//this.key = new Key(6, 0,0);
+};
+
+SystemMeasure.prototype.setShowInitKey = function(showBool){
+	this.showInitKey = showBool;
+	for(var i = 0; i < this.staffMeasures.length; i++){
+		this.staffMeasures[i].showInitKey = showBool;
+	}
+};
+
+SystemMeasure.prototype.setShowInitTimeSig = function(showBool){
+	this.showInitTimeSig = showBool;
+	for(var i = 0; i < this.staffMeasures.length; i++){
+		this.staffMeasures[i].showInitTimeSig = showBool;
+	}
+};
+
+SystemMeasure.prototype.setShowInitClef = function(showBool){
+	this.showInitClef = showBool;
+	for(var i = 0; i < this.staffMeasures.length; i++){
+		this.staffMeasures[i].showInitClef = showBool;
+	}
+};
+
 
 SystemMeasure.prototype.updateTick = function(ticksPos, width){
 	var exists = false;
@@ -384,6 +462,7 @@ SystemMeasure.prototype.updateTick = function(ticksPos, width){
 };
 
 SystemMeasure.prototype.buildGraphic = function(){
+	//alert("Building sys mes graphic");
 	var staffMeas;
 	// Calculating space needed for starting clef, key sign and time sign.
 	for(var i = 0; i < this.staffMeasures.length; i++){
@@ -465,6 +544,26 @@ MasterStaff.prototype.insertTimeSignature = function(newTimeSignature){
 	}
 };
 
+MasterStaff.prototype.getTimeSignatureAt = function(qNotePos, ticksPos){
+	var totalTicksPos = qNotePos * Q_NOTE + ticksPos;
+	if(this.timeSigs.length == 0){ return null; }
+	else{
+		var tmpTimeSig;
+		for(var i = 0; i < this.timeSigs.length; i++){
+			tmpTimeSig = this.timeSigs[i];
+			if(totalTicksPos == (tmpTimeSig.qNotePos * Q_NOTE) + tmpTimeSig.ticksPos){
+				return tmpTimeSig;
+			}
+			if(totalTicksPos > (tmpTimeSig.qNotePos * Q_NOTE) + tmpTimeSig.ticksPos){
+				if(i == this.timeSigs.length - 1){ return tmpTimeSig; }
+				else if(this.timeSigs[i+1].qNotePos * Q_NOTE + this.timeSigs[i+1].ticksPos > totalTicksPos){
+					return tmpTimeSig;		
+				}
+			}
+		}
+	}
+};
+
 MasterStaff.prototype.insertKey = function(newKey){
 	var newKeyTotalTicks = newKey.qNotePos * Q_NOTE + newKey.ticksPos;  
 	if(this.keys.length == 0 || 
@@ -485,6 +584,27 @@ MasterStaff.prototype.insertKey = function(newKey){
 		}
 	}
 };
+
+MasterStaff.prototype.getKeyAt = function(qNotePos, ticksPos){
+	var totalTicksPos = (qNotePos * Q_NOTE) + ticksPos;
+	if(this.keys.length == 0){ return null; }
+	else{
+		var tmpKey;
+		for(var i = 0; i < this.keys.length; i++){
+			tmpKey = this.keys[i];
+			if(totalTicksPos == (tmpKey.qNotePos * Q_NOTE) + tmpKey.ticksPos){
+				return tmpKey;
+			}
+			if(totalTicksPos > (tmpKey.qNotePos * Q_NOTE) + tmpKey.ticksPos){
+				if(i == this.keys.length - 1){ return tmpKey; }
+				else if(this.keys[i+1].qNotePos * Q_NOTE + this.keys[i+1].ticksPos > totalTicksPos){
+					return tmpKey;		
+				}
+			}
+		}
+	}
+};
+
 
 
 // Staff contains staff-related info: pureMusic,clefs and other elements which relates to a range of bars.
@@ -514,7 +634,11 @@ Staff.prototype.insertMusic = function(pureNoterest, qNotePos, ticksPos){
 };
 
 Staff.prototype.appendMeasure = function(systemMeasure){
-	var newStM = new Staff_Measure(4,4, 3, 50, this, systemMeasure);
+	//alert(systemMeasure.timeSignature.topNr);
+	var topMeter = systemMeasure.timeSignature.topNr;
+	var bottomMeter = systemMeasure.timeSignature.botNr;
+	var keyNr = systemMeasure.key.keyNr;
+	var newStM = new Staff_Measure(topMeter, bottomMeter, keyNr, 50, this, systemMeasure);
 	this.staffMeasures.push(newStM);
 	return newStM;
 };
@@ -567,9 +691,9 @@ var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMe
 	//this.systemMeasure = systemMeasure; 
 	this.pitchOffset = 0;
 	this.keyOffset = 0;
-	this.showInitClef = false;
-	this.showInitKey = false;
-	this.showInitTimeSig =false;
+	this.showInitClef = this.systemMeasure.showInitClef;
+	this.showInitKey = this.systemMeasure.showInitKey;
+	this.showInitTimeSig = this.systemMeasure.showInitTimeSig;
 	// musicItems stores the music items which is placed in the music grid.
 	this.musicItems = [];
 	this.shortestInBarTicks = 0;
@@ -656,7 +780,7 @@ Staff_Measure.prototype.addTmpAcc = function(tmpA){
 }
 
 //Method to be called when a staff measure has been created or edited:
-Staff_Measure.prototype.buildGraphic = function(){	
+Staff_Measure.prototype.buildGraphic = function(){
 	this.pitchOffset = itemImagesInfo[this.clefNr].param1;
 	this.keyOffset = itemImagesInfo[this.clefNr].param2;
 
@@ -705,7 +829,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 	
 	if(this.showInitTimeSig){
 		var timeSigX = this.systemMeasure.initClefWidth + this.systemMeasure.initKeyWidth;
-		this.graph_items.push(new TimeSignature(this.topMeter, this.bottomMeter, 1, timeSigX, 0));
+		this.graph_items.push(new GraphicTimeSignature(this.topMeter, this.bottomMeter, 1, timeSigX, 0));
 	}
 
 	//musicItems
@@ -834,6 +958,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	// Redraw is true if Staff_Measure is has been drawn before
 	// lines:
+	//
 	context.strokeStyle = "black";
 	var lineW = spacingPx/50;
 	if(lineW < 1){lineW = 1};
@@ -862,7 +987,7 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			}
 		}
 		else if(grItem.type == "time signature"){
-			var tsX, tsUppperNrY,tsLowerNrY;
+			var tsX, tsUpperNrY,tsLowerNrY;
 			var fontSizePx = spacingPx * 2.4;
 			if( grItem.posRef == 0 ){}
 			else{
@@ -1132,12 +1257,20 @@ var GraphicItem = function(imgNr, posRef, leftX, upperY){
 	this.type = "image";
 };
 
+var GraphicTimeSignature = function(topNr, botNr, posRef, leftX, upperY){
+	this.topNr = topNr;
+	this.botNr = botNr;
+	this.posRef = posRef;
+	this.leftX = leftX;
+	this.upperY = upperY;
+	this.type = "time signature";
+};
+
 var TimeSignature = function(topNr, botNr, qNotePos, ticksPos){
 	this.topNr = topNr;
 	this.botNr = botNr;
 	this.qNotePos = qNotePos;
 	this.ticksPos = ticksPos;
-	this.type = "timeSignature";
 };
 
 var Key = function(keyNr, qNotePos, ticksPos){
