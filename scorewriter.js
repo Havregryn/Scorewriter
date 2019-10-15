@@ -11,11 +11,12 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =12; // The main zoom level: Spacing between lines in a staff
+var spacingPx =15; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 15;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 32; // Releated to spacing
+var restsMaxNrDots = 2; // The maximum nr of dots on a rest.
 var stemW = spacingPx/30;
 var staffs = [];
 var musicSystem; // The main score, all staffs combined
@@ -54,18 +55,42 @@ window.onload = function(){
 	score = new Score();
 	score.masterStaff = new MasterStaff();
 
-	score.masterStaff.insertKey(new Key(-4, 0, 0)); // Key, QnotePos, ticksPos
+	score.masterStaff.insertKey(new Key(0, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
 
 	score.staffs[0] = new Staff(this.masterStaff);
 	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
+	
+	/*
 	score.appendMusic(new PureNoteRest([60], 1, 0),0); // noteNrArray, qNoteLength, ticksLength
 	score.appendMusic(new PureNoteRest([62], 1, 0),0);
 	score.appendMusic(new PureNoteRest([64], 1, 0),0);
 	score.appendMusic(new PureNoteRest([67], 1, 0),0);
 	score.appendMusic(new PureNoteRest([72], 4, 0),0);
+	*/
 
 	score.appendMeasures(33);
+
+	//NoteRest(isNote, noteNr, blwabv , ticksPos, ticksLength)
+	//score.insertMusic(new NoteRest(true, 60, 0 , Q_NOTE * 0, Q_NOTE), 0, 0 );//noteRest, staffNr, measNr 
+	//score.insertMusic(new NoteRest(true, 62, 0 , Q_NOTE * 1, Q_NOTE), 0, 0 );
+	score.insertMusic(new NoteRest(true, 64, 0 , Q_NOTE * 2, Q_NOTE), 0, 0 );
+	score.insertMusic(new NoteRest(true, 65, 0 , Q_NOTE * 0, Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 67, 0 , Q_NOTE * 0.5, Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 69, 0 , Q_NOTE * 1, Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 71, 0 , Q_NOTE * 1.5,Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 2,Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 74, 0 , Q_NOTE * 2.5,Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 76, 0 , Q_NOTE * 3,Q_NOTE * .5), 0, 1 );
+	score.insertMusic(new NoteRest(true, 77, 0 , Q_NOTE * 3.4,Q_NOTE * .5), 0, 1 );
+	
+	
+	
+	score.insertMusic(new NoteRest(true, 78, 0 , Q_NOTE * 0, Q_NOTE * 4), 0, 3 );
+
+
+
+
 
 	score.addPart();
 	score.parts[0].addPage();
@@ -73,7 +98,7 @@ window.onload = function(){
 		score.sendSysMeasureToParts(score.systemMeasures[i], 0);
 	}
 
-
+	score.updateMeasures(0, Q_NOTE * 100);
 	score.buildGraphic();
 
 
@@ -104,6 +129,7 @@ var loadImgs = function(){
 	itemImagesInfo[1].param3 = 0.6; // stemY left offset from note upperY
 	itemImagesInfo[1].param4 = 0.35; // stemY right offset from note upperY
 	setImage(2, "images/WholeNote.svg", new ItemImgInfo(1,1.7, 0, 0));
+	setImage(4, "images/QuarterRest.svg", new ItemImgInfo(4, 0.6, 0.3, -1.8));
 	setImage(10, "images/UpSingleFlag.svg", new ItemImgInfo(3,0.3 , 1.1, 0));
 	setImage(11, "images/DownSingleFlag.svg", new ItemImgInfo(3, 0.3, 0, -2 ));
 	setImage(20, "images/Sharp.svg", new ItemImgInfo(2.8, 0.3, 0, -0.8));	
@@ -156,7 +182,7 @@ window.onresize = function(event){
 var viewResize = function(redraw){	
 	//width = window.innerWidth - 20;
 	//height = window.innerHeight - 20;
-	width = 2000;
+	width = spacingPx * 100;
 	height = width * Math.sqrt(2);
 	canvas.width = width;
 	canvas.height = height;
@@ -164,25 +190,13 @@ var viewResize = function(redraw){
 };
 
 var render = function(redraw){
-	score.render();
 	context.scale(drawScale, drawScale);
+	score.render();
 	context.strokeStyle = "black";
 	context.font = "50px Baskerville";
 	context.textAlign = "left";
-	context.fillText("Oh Well", 50, 50);
+	context.fillText(score.title, 50, 50);
 	
-	/*
-	var currentX = 50; // The starting pixel of current measure
-	var length; // The total length of the bar in pixels:
-	for(var i = 0; i < score.systemMeasures.length; i++){
-		var sysMeas = score.systemMeasures[i];
-		if(!redraw){ sysMeas.buildGraphic(); }
-		var inner = emptyBarMinSpace;
-		length = (sysMeas.leftMarginWidth + inner + sysMeas.rightMarginWidth) * spacingPx;
-		sysMeas.render(currentX, 200, length, redraw);
-		currentX += length;
-	}
-	*/
 };
 
 var renderImage = function(imageNr, leftX, upperY){
@@ -209,6 +223,9 @@ var Score = function(){
 	this.parts = [];
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
+
+	this.title = "Some Music";
+	this.composer = "W. A. Mozart";
 }
 
 Score.prototype.appendMusic = function(pureNoteRest, staffNr){
@@ -224,14 +241,28 @@ Score.prototype.appendMusic = function(pureNoteRest, staffNr){
 	//alert("Length: " + this.qNoteEndPureMusic + " , " + this.ticksEndPureMusic);
 };
 
+Score.prototype.insertMusic = function(noteRest, staffNr, measureNr){
+	//Ny metode for musikk innsetting.
+	//Går inn til riktig staff_measure og setter inn.
+	//Vi glemmer Pure Music!!
+	this.systemMeasures[measureNr].insertMusic(noteRest, staffNr); 
+	
+};
+
 Score.prototype.appendMeasures = function(numberOfMeasures){ 
 	var qNoteStartingPoint = 0, ticksStartingPoint = 0;
 	// Finding the startpoint for the first measure added:
-	if(this.systemMeasures.length > 0){
-		
-	}
 	for(var i = 0; i < numberOfMeasures; i++){
-			
+		// Finding the startpoint of the new Sys Measyre
+		if(this.systemMeasures.length > 0){
+		var lastMeas = this.systemMeasures[this.systemMeasures.length - 1];
+		qNoteStartingPoint = lastMeas.qNoteStartingPoint + Math.floor(lastMeas.totalTicksLength / Q_NOTE);
+		ticksStartingPoint = lastMeas.ticksStartingPoint + (lastMeas.totalTicksLength % Q_NOTE);
+		qNoteStartingPoint += Math.floor(ticksStartingPoint / Q_NOTE);
+		ticksStartingPoint = ticksStartingPoint % Q_NOTE; 
+		//alert(qNoteStartingPoint + " " + ticksStartingPoint);
+	}
+
 		var newSysMes = new SystemMeasure(this.masterStaff, qNoteStartingPoint, ticksStartingPoint);
 		this.systemMeasures.push(newSysMes);
 		if(this.systemMeasures.length == 1){
@@ -244,13 +275,23 @@ Score.prototype.appendMeasures = function(numberOfMeasures){
 	}	
 };
 
-Score.prototype.updateMeasures = function(qNotefrom, ticksFrom, qNoteTo, ticksTo){
+Score.prototype.updateMeasures = function(ticksFrom, ticksTo){
+	
 	// This function updates the content of the measures in the given range
 	// If to = 0 : Updating everythin after qNote/ticks from.
 	
 	// 1) Calculate the first affected measures
 	// 3) Call the SystemMeasure.update(qNote/ticksStart, lastqNote/tick of prev measure, )
 	//    of the relevant measuresi. Append Systemmeasures if neccessary.
+	var sysMeasFirstIx, SysMeasLastIx, sysMeasAtIx, sysMeasAtIxStartingTick, sysMeasAtIxLastTick;
+	for(var i = 0; i < this.systemMeasures.length; i++){
+		sysMeasAtIx = this.systemMeasures[i];
+		sysMeasAtIxStartingTick = sysMeasAtIx.qNoteStartingPoint * Q_NOTE + sysMeasAtIx.ticksStartingPoint;
+		sysMeasAtIxLastTick = sysMeasAtIxStartingTick + sysMeasAtIx.qNoteLength * Q_NOTE + sysMeasAtIx.ticksLength;
+		//Hvis takten er i intervall:
+	
+	}
+	
 };
 
 Score.prototype.sendSysMeasureToParts = function(sysMeasure, sysMeasureNr){
@@ -290,7 +331,7 @@ Part.prototype.buildGraphic = function(){
 };
 
 Part.prototype.render = function(){
-	this.pages[0].render(0, 0 , 1280, false);
+	this.pages[0].render(0, 0 , 100 * spacingPx, false);
 };
 
 var Page = function(){
@@ -332,18 +373,20 @@ Page.prototype.render = function(leftXPx, topYPx, widthPx, redraw){
 	var topMarginPx = topYPx + heightPx * this.topMargin;
 	var innerHeightPx = heightPx * (1 - this.topMargin - this.bottomMargin);
 
-	// Drawing outline and margin:
+	// Drawing outline:
 	context.strokeStyle = "black";
 	context.beginPath();
 	context.rect(leftXPx, topYPx, widthPx, heightPx);
 	context.stroke();
 	
-	/*
-	context.strokeStyle = "grey";
+	// Drawing the margins
+	context.setLineDash([5, 5]);
+	context.strokeStyle = "#B0B0B0";
 	context.beginPath();
 	context.rect(leftMarginPx, topMarginPx, innerWidthPx, innerHeightPx);
 	context.stroke();
-	*/
+	context.setLineDash([]);
+	
 
 	for(var i = 0; i < this.systems.length; i++){
 		this.systems[i].render(leftMarginPx, topMarginPx + (i * spacingPx * systemSpacing), innerWidthPx, innerHeightPx); 
@@ -396,6 +439,7 @@ var SystemMeasure = function(masterStaff, qNoteStartingPoint, ticksStartingPoint
 	this.masterStaff = masterStaff;
 	this.qNoteStartingPoint = qNoteStartingPoint;
 	this.ticksStartingPoint = ticksStartingPoint;
+	this.totalTicksLength = 0;
 	this.staffMeasures = [];
 	this.ticks = []; //Stores info about specific ticks: width
 	this.leftMarginWidth = 0; // no of spacings.
@@ -417,7 +461,7 @@ var SystemMeasure = function(masterStaff, qNoteStartingPoint, ticksStartingPoint
 SystemMeasure.prototype.updateTimeSig = function(){
 	//alert(this.masterStaff.timeSigs.length);
 	this.timeSignature = this.masterStaff.getTimeSignatureAt(this.qNoteStartingPoint, this.ticksStartingPoint);	
-	//this.timeSignature = new TimeSignature(4,4, 0,0);
+	this.totalTicksLength = 4 * Q_NOTE * this.timeSignature.topNr / this.timeSignature.botNr;
 };
 
 SystemMeasure.prototype.updateKey = function(){
@@ -508,11 +552,8 @@ SystemMeasure.prototype.render = function(leftX, topY, width, redraw){
 	}
 };
 
-SystemMeasure.prototype.updateContent = function(){
-	// Updates the content of this measure.
-	// 1) Update time signature/Key
-	// 2) Call each staff´s updateContent
-	// 3) Calls updateGraphic(?)
+SystemMeasure.prototype.insertMusic = function(noteRest, staffNr){
+	this.staffMeasures[staffNr].addMusic(noteRest);
 };
 
 
@@ -841,9 +882,10 @@ Staff_Measure.prototype.buildGraphic = function(){
 			if(noteRest.ticksLength < Q_NOTE * 2){
 				noteRest.imgNr = 0;
 			}
-			else{
+			else if(noteRest.ticksLength < Q_NOTE * 4){
 				noteRest.imgNr = 1; 
 			}
+			else{ noteRest.imgNr = 2; }
 		}
 		else{
 			// is a rest
@@ -1008,18 +1050,47 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	var innerLeftX = leftX + this.systemMeasure.leftMarginWidth * spacingPx + spacingPx;
 	var innerRightX = leftX + width - this.systemMeasure.rightMarginWidth * spacingPx - spacingPx;
 	var innerWidth = innerRightX - innerLeftX;
+	var prevNoteRest, ticksGap, ticksGapPosX;
 
-	for(itemIx = 0; itemIx < this.musicItems.length; itemIx++){
+	for(var itemIx = 0; itemIx < this.musicItems.length; itemIx++){
 		var noteRest = this.musicItems[itemIx];
+
+		
+		// Filling in with rests if gap in music:
+		ticksGap = 0
+		if(itemIx == 0){
+			// Rendering of initial rest in measure:
+			ticksGap = noteRest.ticksPos;
+			if(ticksGap > 0){
+				var ticksRemainingRest = this.renderRest(ticksGap, innerLeftX, topY + 2* spacingPx);
+			}			
+		}
+		else{
+			// Rendering of in-between rests in measure:
+			ticksGap = noteRest.ticksPos - (prevNoteRest.ticksPos + prevNoteRest.ticksLength); 
+			if(ticksGap > 0){
+				ticksGapPosX = prevNoteRest.ticksPos + prevNoteRest.ticksLength;
+				var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;	
+				var ticksRemainingrest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
+			}
+		}
+		
+		if(itemIx == this.musicItems.length - 1){
+			// Rendering of ending rests in measure:
+			ticksGap = this.totalTicks - (noteRest.ticksPos + noteRest.ticksLength);	 
+			if(ticksGap > 0){
+				ticksGapPosX = noteRest.ticksPos + noteRest.ticksLength;
+				var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;
+				var remainingRest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
+			}
+		}
+
 		var notePosX = innerLeftX + (innerWidth / this.totalTicks) * noteRest.ticksPos; 
 
 		// NEW rendering: Using params already defined in noteRest:
 		var notePosY = topY + (noteRest.Ypos * spacingPx);	
-	
-	// Notes between scale steps is has notPosValue of *.5.
+		// Notes between scale steps is has notPosValue of *.5.
 		// Actual step is beeing calculated along with accidentals below
-
-
 		if(noteRest.isNote){
 			// noteRest is a note, NOT a rest:
 			// Rendering the stem:
@@ -1033,8 +1104,19 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			context.lineTo(stemXpx, stemYstartPx + (noteRest.stemLength * spacingPx));
 			context.stroke();
 			
+			// Flags and beams:
+			// Temporary: Flags only
+			if(noteRest.ticksLength < Q_NOTE){
+				if(noteRest.stemLength < 0){
+					renderImage(10, notePosX, notePosY + noteRest.stemLength * spacingPx);
+				}
+				else{
+					renderImage(11, notePosX, notePosY + noteRest.stemLength * spacingPx);
+				}
+			} 
+			
 
-//Drawing ledger lines:
+			//Drawing ledger lines:
 			var staffLowY = topY + 4 * spacingPx;
 			var ledgeDelta = 1.35;
 			if(noteRest.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
@@ -1079,156 +1161,41 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			}
 		}
 
-
-
-
-
-
-		/*  START PÅ COMMENTING BLOKK!! 
-		 *
-		 *
-		// *** HER MÅ DET VÆRE EN KLAR STRUKTUR:
-		// 			Dersom ingen ønsker i noteRest:
-		//			Hva med ranking av nærmeste trinn? 
-		//			Eks: skal sette inn F etter E og F#(løst fortegn)
-		//			Finner at current closest er E og F#, velger en av de. 
-		//			Dersom noteRest er i opprinnelig toneart velges trinn deretter
-		//			Siden F er i opprinnelig toneart velges den.
-		//			utover det velges iht gjelden toneart, # eller b-toneart.
-		
-		// Calculate accidental
-		// Sjekker nærmeste toner og rangerer etter hvor langt unna de er:
-	
-
-		var noteNeedNoAcc = false;
-		var accNeeded = 99;
-		for(i = 0; i < 7; i++){
-			if(noteStep == this.cScaleSteps[i]){
-				var i2;
-				noteNeedNoAcc = true;
-				for(i2 = this.tmpAccidentals.length - 1; i2 >= 0; i2--){
-					var tmpA = this.tmpAccidentals[i2];
-					if(tmpA.ticksPos <= noteRest.ticksPos && i == tmpA.cScaleStep){
-						noteNeedNoAcc = false;
-						alert("Scalestep " + i +" has prev loose acc");
-						break;
-					}
-				}
-				break;
-			}	
-		}
-
-
-		if(!noteNeedNoAcc){
-			notePosX += (padding * spacingPx);
-			// Note is not in key, accidental must be set:
-			if(noteRest.blwabv == 0){
-				if(noteIsInCScale(noteStep)){
-					// Note can be set to natural:
-					noteRest.shownAcc = 0;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep, 0));
-					if(this.key > 0){ notePosY -= 0.25 * spacingPx; }
-					else{ notePosY += 0.25 * spacingPx; }
-				}
-				else if(this.key > 0){
-					noteRest.shownAcc = 1;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep - 0.5 , 1));
-					notePosY += 0.25 * spacingPx;
-				}
-				else{
-					noteRest.shownAcc = -1;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep + 0.5, -1));
-					notePosY -= 0.25 * spacingPx;
-				}
-			}
-		}
-
-		notePosY -= ((noteOct - 6) * 3.5 * spacingPx);
-		notePosY += itemImagesInfo[this.clefNr].param1 * spacingPx;
-
-		if(noteRest.isNote){
-			//Drawing ledger lines:
-			var staffLowY = topY + 4 * spacingPx;
-			var ledgeDelta = 1.35;
-			if(noteRest.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
-			if(notePosY > staffLowY){
-				var noOfLines = 0.5 + ((notePosY - staffLowY) / spacingPx);
-				context.lineWidth = lineW;
-				context.beginPath();
-				for(i = 1; i <= noOfLines; i++){
-					context.moveTo(notePosX - spacingPx * 0.15, staffLowY + i * spacingPx);
-					context.lineTo(notePosX + spacingPx * ledgeDelta, staffLowY + i * spacingPx);	
-				}
-				context.stroke();
-			}
-			else if(notePosY < topY - spacingPx){	
-				var noOfLines = ((topY - notePosY) / spacingPx) - 0.5;
-				context.lineWidth = lineW;
-				context.beginPath();
-				for(i = 1; i <= noOfLines; i++){
-					context.moveTo(notePosX - spacingPx * 0.15, topY - i * spacingPx);
-					context.lineTo(notePosX + spacingPx * ledgeDelta, topY - i * spacingPx);	
-				}
-				context.stroke();
-			}
-			renderImage(noteRest.imgNr, notePosX, notePosY);
-			// Drawing stem:
-			if(noteRest.ticksLength < Q_NOTE * 4){
-				var info = itemImagesInfo[1];
-				var stemW = spacingPx/30;
-				var stemLength = 3 * spacingPx;
-				if(notePosY > staffLowY + spacingPx){
-					stemLength = notePosY - staffLowY  +  2 * spacingPx;
-				}
-				else if(notePosY < topY - spacingPx){
-					stemLength = topY + spacingPx - notePosY;
-				}
-
-				if(stemW < 1){ stemW = 1; };
-				context.lineWidth = stemW;;
-				context.beginPath();
-				if(notePosY > topY + spacingPx){
-					context.moveTo(notePosX + info.param2 * spacingPx, notePosY + (info.param4 * spacingPx));
-					context.lineTo(notePosX + info.param2 * spacingPx, notePosY - stemLength );
-					context.stroke();
-					if(noteRest.ticksLength < Q_NOTE){
-						renderImage(10, notePosX, notePosY - stemLength );
-					}
-				}
-				else{					
-					context.moveTo(notePosX + info.param1 * spacingPx, notePosY + (info.param3 * spacingPx));
-					context.lineTo(notePosX + info.param1 * spacingPx, notePosY + stemLength + spacingPx );
-					context.stroke();
-					if(noteRest.ticksLength < Q_NOTE){
-						renderImage(11, notePosX, notePosY + stemLength);i
-					}
-				}
-			}
-			// accidentals:
-			if(noteRest.shownAcc !=  99){
-				var accImgNr;
-				if(noteRest.shownAcc == - 1){ accImgNr = 21;  }
-				else if(noteRest.shownAcc == 0){ accImgNr = 22; }
-				else if(noteRest.shownAcc == 1 ){ accImgNr = 20; }	
-				renderImage(accImgNr, notePosX - itemImagesInfo[accImgNr].param1 * spacingPx, notePosY);
-			}
-			
-
-		}
-		else{
-			
-			if(noteRest.ticksLength >= 2 * Q_NOTE){
-				
-				if(noteRest.ticksLength >= 4 * Q_NOTE){
-					context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
-				}
-				else{
-					context.fillRect(notePosX, topY + spacingPx * 1.5, spacingPx, spacingPx / 2);
-				}
-			}
-		}
-		*/
+		var prevNoteRest = noteRest;
 	}
+	
+	// Filling in with bar rests:
+	if(this.musicItems.length == 0){
+		context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
+	}
+};
+
+Staff_Measure.prototype.renderRest = function(ticksLength, posXPx, posYPx){
+	// The function attempts to get as close as possible to the received length value.
+	// If the rest musit be written as two separate rests the function returns the
+	// excess value.
+	//alert("Setter inn pause med lengde: " + (ticksLength/Q_NOTE) + " Xp: x" + posXPx + " Ypx: " + posYPx );
+
+	// 1) Find the resolution level of the rest(128? 64?)
+	// 2) Find the length of the base rest
+	// 3) Find the length vs resoultion ratio. = nr of dots.
+
+	// Finding the base rest value
+	var baseLength, remainingLength;
+	for(var i = Q_NOTE * 8; i >= Q_NOTE / 32; i = i / 2){
+		if(Math.floor(ticksLength / i) == 1){
+			baseLength = i;
+			remainingLength = ticksLength - baseLength;
+			break;
+		}
+	}
+	if(baseLength == Q_NOTE * 2){
+		context.fillRect(posXPx, posYPx, spacingPx, spacingPx / 2);	
+	}
+	else if(baseLength == Q_NOTE){
+		renderImage(4, posXPx, posYPx);
+	}
+	return remainingLength;
 };
 
 var ItemImgInfo = function(scale, whFactor, xBias, yBias){
