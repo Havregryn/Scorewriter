@@ -11,8 +11,8 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =15; // The main zoom level: Spacing between lines in a staff
-var systemSpacing = 15;
+var spacingPx =30; // The main zoom level: Spacing between lines in a staff
+var systemSpacing = 10;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 32; // Releated to spacing
@@ -57,6 +57,7 @@ window.onload = function(){
 
 	score.masterStaff.insertKey(new Key(0, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
+	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE * 2, Q_NOTE * 2];
 
 	score.staffs[0] = new Staff(this.masterStaff);
 	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
@@ -72,23 +73,23 @@ window.onload = function(){
 	score.appendMeasures(33);
 
 	//NoteRest(isNote, noteNr, blwabv , ticksPos, ticksLength)
-	//score.insertMusic(new NoteRest(true, 60, 0 , Q_NOTE * 0, Q_NOTE), 0, 0 );//noteRest, staffNr, measNr 
+	score.insertMusic(new NoteRest(true, 60, 0 , Q_NOTE * 0.5, Q_NOTE/2), 0, 0 );//noteRest, staffNr, measNr 
 	//score.insertMusic(new NoteRest(true, 62, 0 , Q_NOTE * 1, Q_NOTE), 0, 0 );
-	score.insertMusic(new NoteRest(true, 64, 0 , Q_NOTE * 2, Q_NOTE), 0, 0 );
-	score.insertMusic(new NoteRest(true, 65, 0 , Q_NOTE * 0, Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 67, 0 , Q_NOTE * 0.5, Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 69, 0 , Q_NOTE * 1, Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 71, 0 , Q_NOTE * 1.5,Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 2,Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 74, 0 , Q_NOTE * 2.5,Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 76, 0 , Q_NOTE * 3,Q_NOTE * .5), 0, 1 );
-	score.insertMusic(new NoteRest(true, 77, 0 , Q_NOTE * 3.4,Q_NOTE * .5), 0, 1 );
-	
+	score.insertMusic(new NoteRest(true, 64, 0 , Q_NOTE * 2, Q_NOTE * 2), 0, 0 );
+	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 0, Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 67, 0 , Q_NOTE * 0.5, Q_NOTE / 2), 0, 1 );
+	//score.insertMusic(new NoteRest(true, 69, 0 , Q_NOTE * 1, Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 71, 0 , Q_NOTE * 1.5,Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 2,Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 74, 0 , Q_NOTE * 2.5,Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 76, 0 , Q_NOTE * 3,Q_NOTE / 2), 0, 1 );
+	score.insertMusic(new NoteRest(true, 84, 0 , Q_NOTE * 3.50,Q_NOTE / 4), 0, 1 );
+	score.insertMusic(new NoteRest(true, 86, 0 , Q_NOTE * 3.75,Q_NOTE / 8), 0, 1 );
 	
 	
 	score.insertMusic(new NoteRest(true, 78, 0 , Q_NOTE * 0, Q_NOTE * 4), 0, 3 );
 
-
+	score.insertMusic(new NoteRest(false, 71, 0 , Q_NOTE * 0,Q_NOTE / 2), 0, 4 );
 
 
 
@@ -129,9 +130,9 @@ var loadImgs = function(){
 	itemImagesInfo[1].param3 = 0.6; // stemY left offset from note upperY
 	itemImagesInfo[1].param4 = 0.35; // stemY right offset from note upperY
 	setImage(2, "images/WholeNote.svg", new ItemImgInfo(1,1.7, 0, 0));
-	setImage(4, "images/QuarterRest.svg", new ItemImgInfo(4, 0.6, 0.3, -1.8));
-	setImage(10, "images/UpSingleFlag.svg", new ItemImgInfo(3,0.3 , 1.1, 0));
-	setImage(11, "images/DownSingleFlag.svg", new ItemImgInfo(3, 0.3, 0, -2 ));
+	setImage(4, "images/Crotchet_rest_alt_plain-svg.svg", new ItemImgInfo(3, 0.32, 0.3, -1.5));
+	//setImage(10, "images/UpSingleFlag.svg", new ItemImgInfo(3,0.3 , 1.1,0.4));
+	//setImage(11, "images/DownSingleFlag.svg", new ItemImgInfo(3, 0.3, 0, -2 ));
 	setImage(20, "images/Sharp.svg", new ItemImgInfo(2.8, 0.3, 0, -0.8));	
 	itemImagesInfo[20].param1 = 0.9; // Distance from Note
 	setImage(21, "images/Flat.svg", new ItemImgInfo(2.6, 0.4, 0, -1.3));
@@ -180,10 +181,10 @@ window.onresize = function(event){
 };	
 
 var viewResize = function(redraw){	
-	//width = window.innerWidth - 20;
-	//height = window.innerHeight - 20;
-	width = spacingPx * 100;
-	height = width * Math.sqrt(2);
+	width = window.innerWidth - 20;
+	height = window.innerHeight - 20;
+	//width = spacingPx * 100;
+	//height = width * Math.sqrt(2);
 	canvas.width = width;
 	canvas.height = height;
 	render(redraw);
@@ -888,7 +889,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 			else{ noteRest.imgNr = 2; }
 		}
 		else{
-			// is a rest
+			
 		}
 
 		var noteOct = Math.floor(noteRest.noteNr / 12); //Middle octave is 5.
@@ -964,7 +965,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 			if(noteRest.ticksLength < Q_NOTE * 4){
 				var info = itemImagesInfo[0];
 				noteRest.stemLength = -3;
-				if(noteRest.Ypos <= 1){ noteRest.stemLength = 4; }
+				if(noteRest.Ypos <= 1.5){ noteRest.stemLength = 4; }
 				if(noteRest.Ypos > 4.5 || noteRest.Ypos < -1.5){
 					noteRest.stemLength = 2 - noteRest.Ypos;
 				}
@@ -1079,6 +1080,7 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			// Rendering of ending rests in measure:
 			ticksGap = this.totalTicks - (noteRest.ticksPos + noteRest.ticksLength);	 
 			if(ticksGap > 0){
+				//alert("Ticksgap fra siste note: " + ticksGap);
 				ticksGapPosX = noteRest.ticksPos + noteRest.ticksLength;
 				var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;
 				var remainingRest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
@@ -1106,15 +1108,9 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 			
 			// Flags and beams:
 			// Temporary: Flags only
-			if(noteRest.ticksLength < Q_NOTE){
-				if(noteRest.stemLength < 0){
-					renderImage(10, notePosX, notePosY + noteRest.stemLength * spacingPx);
-				}
-				else{
-					renderImage(11, notePosX, notePosY + noteRest.stemLength * spacingPx);
-				}
-			} 
-			
+			if(noteRest.ticksLength < Q_NOTE * 2){
+				this.renderFlags(noteRest.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
+			}
 
 			//Drawing ledger lines:
 			var staffLowY = topY + 4 * spacingPx;
@@ -1148,6 +1144,19 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 
 
 			renderImage(noteRest.imgNr, notePosX, notePosY);
+			
+			
+			//dot testing only
+			/*
+			context.beginPath();
+			//alert("PosY = " + noteRest.Ypos);
+			var deltaDotPosY = spacingPx * 0.5;
+			if(noteRest.Ypos != Math.floor(noteRest.Ypos)){ deltaDotPosY = 0; }
+			var dotPosX = notePosX + itemImagesInfo[noteRest.imgNr].width * spacingPx + spacingPx * 0.5;
+			context.arc(dotPosX, notePosY + deltaDotPosY, spacingPx/6, 0, 2 * Math.PI);
+			context.fill();
+			context.stroke();
+			*/
 		}
 		else{
 			// noteRest is a rest:
@@ -1170,6 +1179,104 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	}
 };
 
+Staff_Measure.prototype.renderFlags = function(ticksLength, stemRootXPx, stemRootYPx, stemLengthPx){
+	// Settings: 
+	var EIGHT_FLAG_WIDTH = spacingPx;
+	var SUB_FLAG_WIDTH = spacingPx * 0.75;
+
+	// Calculating how many flags:
+	// FORENKLE MED LOG2!!!
+	var noOfFlags = 1;
+	for(var divisor = Q_NOTE / 4; divisor >= Q_NOTE / 32; divisor = divisor / 2){
+		//alert(divisor + " " + ticksLength);
+		if(divisor / ticksLength < 1){ break; }
+		noOfFlags++;
+	} 
+	//alert("Antall flagg: " + noOfFlags);
+
+
+	var direction = 1;
+	if( stemLengthPx < 0 ){ direction = -1; };
+	var flagOuterRootXPx = stemRootXPx, flagOuterRootYPx, flagTipXPx, flagTipYPx;
+	var outerConcaveXPx, outerConcaveYPx, outerConvexXPx,outerConvexYPx;
+	var innerConcaveXPx, innerConcaveYPx;
+	if(noOfFlags == 1){
+		// Rendering of 8th note flag:
+		flagOuterRootYPx = stemRootYPx + stemLengthPx;
+		flagTipXPx = stemRootXPx + spacingPx * 0.8;
+		flagTipYPx = flagOuterRootYPx -  (spacingPx * 3.2 * direction);
+		outerConcaveXPx = flagOuterRootXPx + spacingPx * 1.6;
+		outerConcaveYPx = flagOuterRootYPx - (spacingPx * 1.0 * direction);
+		outerConvexXPx = stemRootXPx + spacingPx * 0.1;
+		outerConvexYPx = flagOuterRootYPx - (spacingPx * 1 * direction);
+		innerConcaveXPx = stemRootXPx + spacingPx * 1.5;
+		innerConcaveYPx = flagOuterRootYPx - (spacingPx * 0.9 * direction);
+
+		context.beginPath();
+		context.moveTo(flagOuterRootXPx, flagOuterRootYPx);
+		context.bezierCurveTo(outerConvexXPx, outerConvexYPx,
+							  outerConcaveXPx, outerConcaveYPx,
+							  flagTipXPx, flagTipYPx);
+		context.bezierCurveTo(flagTipXPx, flagTipYPx,
+							  innerConcaveXPx, innerConcaveYPx,
+							  flagOuterRootXPx, flagOuterRootYPx - EIGHT_FLAG_WIDTH * direction);
+		context.fill();
+		context.stroke();
+	}
+	else{
+		// Rendering the innermost of multiple flags:
+		flagOuterRootYPx = stemRootYPx + stemLengthPx - spacingPx * 0.5 * direction;
+		flagTipXPx = stemRootXPx + spacingPx * 0.8;
+		flagTipYPx = flagOuterRootYPx -  (spacingPx * 2.7 * direction);
+		outerConcaveXPx = flagOuterRootXPx + spacingPx * 1.4;
+		outerConcaveYPx = flagOuterRootYPx - (spacingPx * 1.0 * direction);
+		outerConvexXPx = stemRootXPx + spacingPx * 0.3;
+		outerConvexYPx = flagOuterRootYPx - (spacingPx * 0.8 * direction);
+		innerConcaveXPx = stemRootXPx + spacingPx * 1.4;
+		innerConcaveYPx = flagOuterRootYPx - (spacingPx * 1.0 * direction);
+
+		context.beginPath();
+		context.moveTo(flagOuterRootXPx, flagOuterRootYPx);
+		context.bezierCurveTo(outerConvexXPx, outerConvexYPx,
+							  outerConcaveXPx, outerConcaveYPx,
+							  flagTipXPx, flagTipYPx);
+		context.bezierCurveTo(flagTipXPx, flagTipYPx,
+							  innerConcaveXPx, innerConcaveYPx,
+							  flagOuterRootXPx, flagOuterRootYPx - (SUB_FLAG_WIDTH * direction));
+		context.fill();
+		context.stroke();
+		for(var flagNr = 2; flagNr <= noOfFlags; flagNr++){
+			flagOuterRootYPx = flagOuterRootYPx + (SUB_FLAG_WIDTH * direction);
+			flagTipXPx = stemRootXPx + spacingPx * 0.9;
+			flagTipYPx = flagOuterRootYPx -  (spacingPx * 2.0 * direction);
+			outerConcaveXPx = flagOuterRootXPx + spacingPx * 1.4;
+			outerConcaveYPx = flagOuterRootYPx - (spacingPx * 1.0 * direction);
+			outerConvexXPx = stemRootXPx + spacingPx * 0.3;
+			outerConvexYPx = flagOuterRootYPx - (spacingPx * 0.8 * direction);
+			innerConcaveXPx = stemRootXPx + spacingPx * 1.4;
+			innerConcaveYPx = flagOuterRootYPx - (spacingPx * 1.0 * direction);
+
+			context.beginPath();
+			context.moveTo(flagOuterRootXPx, flagOuterRootYPx);
+			context.bezierCurveTo(outerConvexXPx, outerConvexYPx,
+								  outerConcaveXPx, outerConcaveYPx,
+								  flagTipXPx, flagTipYPx);
+			context.bezierCurveTo(flagTipXPx, flagTipYPx,
+								  innerConcaveXPx, innerConcaveYPx,
+								  flagOuterRootXPx, flagOuterRootYPx - (SUB_FLAG_WIDTH * direction));
+			context.lineTo(stemRootXPx, flagOuterRootYPx);
+			context.fill();
+			context.stroke();
+	
+
+		}
+
+	
+		// Loop gjennom alle flagg i tillegg til det innerste
+	
+	}
+};
+
 Staff_Measure.prototype.renderRest = function(ticksLength, posXPx, posYPx){
 	// The function attempts to get as close as possible to the received length value.
 	// If the rest musit be written as two separate rests the function returns the
@@ -1182,6 +1289,7 @@ Staff_Measure.prototype.renderRest = function(ticksLength, posXPx, posYPx){
 
 	// Finding the base rest value
 	var baseLength, remainingLength;
+	//alert(ticksLength);
 	for(var i = Q_NOTE * 8; i >= Q_NOTE / 32; i = i / 2){
 		if(Math.floor(ticksLength / i) == 1){
 			baseLength = i;
@@ -1189,12 +1297,97 @@ Staff_Measure.prototype.renderRest = function(ticksLength, posXPx, posYPx){
 			break;
 		}
 	}
-	if(baseLength == Q_NOTE * 2){
+	if(baseLength == Q_NOTE * 4){
+		context.fillRect(posXPx, topY + spacingPx, spacingPx, spacingPx / 2);
+	}
+	else if(baseLength == Q_NOTE * 2){
 		context.fillRect(posXPx, posYPx, spacingPx, spacingPx / 2);	
 	}
 	else if(baseLength == Q_NOTE){
 		renderImage(4, posXPx, posYPx);
 	}
+	else{
+		// 8th note rest or smaller:
+		//alert("small rest detected)";
+		
+		//Calculating the number of ellipses to be drawn:
+		posYPx -= spacingPx * 0.5;
+		var nrOfEllipses = Math.log2(Q_NOTE / baseLength);
+		//alert(nrOfEllipses);
+		if(Math.floor(posYPx) == posYPx){ posYPx -= 0.5 * spacingPx; }
+		var ellipseXPx = posXPx;
+		var ellipseYPx = posYPx;
+		var stemTiltFactor = 3; // The rising factorial of the stem
+		var stemRootTiltFactorLeft = stemTiltFactor - 0.5;
+		var stemLengthYAxisPx = nrOfEllipses * spacingPx;
+		var stemWidthXPx = spacingPx * 0.07;
+		var stemRootLengthYAxisPx = spacingPx * 0.70;
+		var stemTopLeftXPx = posXPx + spacingPx * 0.7;
+		var stemTopLeftYPx = posYPx - spacingPx * 0.2;
+		var stemBotLeftXPx = stemTopLeftXPx - stemLengthYAxisPx /stemTiltFactor;
+		var stemBotLeftYPx = stemTopLeftYPx + stemLengthYAxisPx;
+		var stemTopRightXPx = stemTopLeftXPx + stemWidthXPx;
+		var stemTopRightYPx = stemTopLeftYPx + stemWidthXPx / stemTiltFactor;
+		
+
+		// Drawing the stem:
+		context.beginPath();
+		context.moveTo(stemTopLeftXPx, stemTopLeftYPx);
+		context.lineTo(stemBotLeftXPx, stemBotLeftYPx);
+		context.lineTo(stemBotLeftXPx + stemWidthXPx, stemBotLeftYPx);
+		context.lineTo(stemTopRightXPx, stemTopRightYPx);
+		context.lineTo(stemTopLeftXPx, stemTopLeftYPx);
+		context.fill();
+		context.stroke();
+	
+		// Drawing the stem root:
+		context.moveTo(stemBotLeftXPx, stemBotLeftYPx);
+		context.lineTo(stemBotLeftXPx - stemRootLengthYAxisPx * (1 / stemRootTiltFactorLeft),
+					   stemBotLeftYPx + stemRootLengthYAxisPx);
+		context.lineTo(stemBotLeftXPx - spacingPx * 0.12,
+					   stemBotLeftYPx + stemRootLengthYAxisPx);
+		context.lineTo(stemBotLeftXPx + stemWidthXPx, stemBotLeftYPx);
+		context.fill();
+		context.stroke();
+
+
+
+		var ellipseBranchUpperXPx = stemTopLeftXPx;
+		var ellipseBranchUpperYPx = stemTopLeftYPx;
+		for(var ellipseIx = 0; ellipseIx < nrOfEllipses; ellipseIx++){
+			context.beginPath()
+			context.ellipse(ellipseXPx, ellipseYPx, spacingPx * 0.26, spacingPx * 0.28, Math.PI * 0.10, 0, 2 * Math.PI);
+			context.fill();
+			context.stroke();
+		 
+
+					// Drawing the connection between ellipse and stem:
+			context.moveTo(ellipseXPx + spacingPx * 0.26, ellipseYPx + spacingPx * 0.1);
+			context.bezierCurveTo(ellipseXPx + spacingPx * 0.26, ellipseYPx + spacingPx * 0.1,
+								  ellipseXPx + spacingPx * 0.5, ellipseYPx + spacingPx * 0.16,
+								  ellipseBranchUpperXPx, ellipseBranchUpperYPx);
+
+			context.lineTo(ellipseBranchUpperXPx - spacingPx * 0.2  * (1 / stemTiltFactor) , ellipseBranchUpperYPx + spacingPx * 0.2);
+			context.bezierCurveTo(ellipseBranchUpperXPx - spacingPx * 0.2  * (1 / stemTiltFactor) , ellipseBranchUpperYPx + spacingPx * 0.2,
+								  ellipseXPx + spacingPx * 0.4, ellipseYPx + spacingPx * 0.3,
+								  ellipseXPx, ellipseYPx + spacingPx * 0.28);
+			
+			//context.lineTo(stemTopLeftXPx, stemTopLeftYPx);
+			context.fill();
+			context.stroke();
+
+
+			//context.lineTo(stemTopL
+			ellipseBranchUpperXPx -= spacingPx * (1 / stemTiltFactor);;
+			ellipseBranchUpperYPx += spacingPx;
+			ellipseXPx -= spacingPx * (1/stemTiltFactor);
+			ellipseYPx += spacingPx;
+		
+		}
+
+	}
+
+
 	return remainingLength;
 };
 
@@ -1238,6 +1431,7 @@ var TimeSignature = function(topNr, botNr, qNotePos, ticksPos){
 	this.botNr = botNr;
 	this.qNotePos = qNotePos;
 	this.ticksPos = ticksPos;
+	this.beamGroups = []; //An array of the tick length of the separate beamGroups
 };
 
 var Key = function(keyNr, qNotePos, ticksPos){
