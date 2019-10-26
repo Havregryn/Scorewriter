@@ -12,12 +12,15 @@ var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
 var spacingPx =30; // The main zoom level: Spacing between lines in a staff
-var systemSpacing = 10;
+var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
 var emptyBarMinSpace = 32; // Releated to spacing
 var restsMaxNrDots = 2; // The maximum nr of dots on a rest.
 var stemW = spacingPx/30;
+var HIGHEST_UPSTEM_YPOS = 2.0;
+
+
 var staffs = [];
 var musicSystem; // The main score, all staffs combined
 var imagesCount = 100; // The number of images
@@ -72,24 +75,27 @@ window.onload = function(){
 
 	score.appendMeasures(33);
 
-	//NoteRest(isNote, noteNr, blwabv , ticksPos, ticksLength)
-	score.insertMusic(new NoteRest(true, 60, 0 , Q_NOTE * 0.5, Q_NOTE/2), 0, 0 );//noteRest, staffNr, measNr 
-	//score.insertMusic(new NoteRest(true, 62, 0 , Q_NOTE * 1, Q_NOTE), 0, 0 );
-	score.insertMusic(new NoteRest(true, 64, 0 , Q_NOTE * 2, Q_NOTE * 2), 0, 0 );
-	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 0, Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 67, 0 , Q_NOTE * 0.5, Q_NOTE / 2), 0, 1 );
-	//score.insertMusic(new NoteRest(true, 69, 0 , Q_NOTE * 1, Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 71, 0 , Q_NOTE * 1.5,Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 72, 0 , Q_NOTE * 2,Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 74, 0 , Q_NOTE * 2.5,Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 76, 0 , Q_NOTE * 3,Q_NOTE / 2), 0, 1 );
-	score.insertMusic(new NoteRest(true, 84, 0 , Q_NOTE * 3.50,Q_NOTE / 4), 0, 1 );
-	score.insertMusic(new NoteRest(true, 86, 0 , Q_NOTE * 3.75,Q_NOTE / 8), 0, 1 );
-	
-	
-	score.insertMusic(new NoteRest(true, 78, 0 , Q_NOTE * 0, Q_NOTE * 4), 0, 3 );
+	//NoteRest(isNote, noteNr, ticksLength)
+	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);//noteRest, ticksPos, measureNr, staffNr, VoiceNr 
+	score.addNoteRest(new NoteRest(true, 71), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 71), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 36), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
 
-	score.insertMusic(new NoteRest(false, 71, 0 , Q_NOTE * 0,Q_NOTE / 2), 0, 4 );
+
+
+
+
+
+
+
 
 
 
@@ -242,11 +248,11 @@ Score.prototype.appendMusic = function(pureNoteRest, staffNr){
 	//alert("Length: " + this.qNoteEndPureMusic + " , " + this.ticksEndPureMusic);
 };
 
-Score.prototype.insertMusic = function(noteRest, staffNr, measureNr){
+Score.prototype.addNoteRest = function(noteRest, ticksLength, ticksPos, measureNr, staffNr, voiceNr){
 	//Ny metode for musikk innsetting.
 	//Går inn til riktig staff_measure og setter inn.
 	//Vi glemmer Pure Music!!
-	this.systemMeasures[measureNr].insertMusic(noteRest, staffNr); 
+	this.systemMeasures[measureNr].addNoteRest(noteRest, ticksLength, ticksPos, staffNr, voiceNr); 
 	
 };
 
@@ -553,8 +559,8 @@ SystemMeasure.prototype.render = function(leftX, topY, width, redraw){
 	}
 };
 
-SystemMeasure.prototype.insertMusic = function(noteRest, staffNr){
-	this.staffMeasures[staffNr].addMusic(noteRest);
+SystemMeasure.prototype.addNoteRest = function(noteRest, ticksLength, ticksPos, staffNr, voiceNr){
+	this.staffMeasures[staffNr].addNoteRest(noteRest, ticksLength, ticksPos, voiceNr);
 };
 
 
@@ -736,8 +742,7 @@ var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMe
 	this.showInitClef = this.systemMeasure.showInitClef;
 	this.showInitKey = this.systemMeasure.showInitKey;
 	this.showInitTimeSig = this.systemMeasure.showInitTimeSig;
-	// musicItems stores the music items which is placed in the music grid.
-	this.musicItems = [];
+	this.staffTicks = []; // a staff tick contains all the noteRests at one particular tick location
 	this.shortestInBarTicks = 0;
 	// graph_items stores all graphical items in the bar and their positioning info:
 	this.graph_items = [];
@@ -791,17 +796,23 @@ Staff_Measure.prototype.updateNoteToYPosTable = function(){
 
 
 // Inserting a note or rest. ticksFromStart = ticks from start of bar.
-// var NoteRest = function(isNote, noteNr, ticksPos, ticksLength){
-Staff_Measure.prototype.addMusic = function(noteRest){
+// var NoteRest = function(isNote, noteNr){
+Staff_Measure.prototype.addNoteRest = function(noteRest, ticksLength, ticksPos, voiceNr){
 	var i;
-	if(this.musicItems.length == 0 || noteRest.ticksPos > this.musicItems[this.musicItems.length-1].ticksPos){
-		this.musicItems.push(noteRest);
+	if(this.staffTicks.length == 0 || ticksPos > this.staffTicks[this.staffTicks.length-1].ticksPos){
+		this.staffTicks.push(new StaffTick(ticksPos));
+		this.staffTicks[this.staffTicks.length-1].addNoteRest(noteRest, ticksLength, voiceNr);
 	}
 	else{
-		for(i = 0; i < this.musicItems.length; i++){
-			if(noteRest.ticksPos <=  this.musicItems[i].ticksPos){
-				this.musicItems.splice(i, 0, noteRest);
+		for(i = 0; i < this.staffTicks.length; i++){
+			if(ticksPos <  this.staffTicks[i].ticksPos){
+				
+				this.staffTicks.splice(i, 0, new StaffTick(ticksPos));
+				this.staffTicks[i].addNoteRest(noteRest, ticksLength, voiceNr);
 				break;
+			}
+			else if(ticksPos == this.staffTicks[i].ticksPos){
+				this.staffTicks[i].addNoteRest(noteRest, ticksLength, voiceNr);
 			}
 		}
 	}
@@ -875,120 +886,210 @@ Staff_Measure.prototype.buildGraphic = function(){
 	}
 
 	//musicItems
+	var staffTick, voiceTick, noteRest;
+	for(staffTickIx = 0; staffTickIx < this.staffTicks.length; staffTickIx++){
+		staffTick = this.staffTicks[staffTickIx];
+		for(voiceTickIx = 0; voiceTickIx < staffTick.voiceTicks.length; voiceTickIx++){
+			voiceTick = staffTick.voiceTicks[voiceTickIx];
+			voiceTick.avgYpos = 0;
+			for(noteRestIx = 0; noteRestIx < voiceTick.noteRests.length; noteRestIx++){
+				noteRest = voiceTick.noteRests[noteRestIx];
+				if(noteRest.isNote){
+				// Is a note, not a rest
+					if(voiceTick.ticksLength < Q_NOTE * 2){
+					noteRest.imgNr = 0;
+					}
+					else if(voiceTick.ticksLength < Q_NOTE * 4){
+						noteRest.imgNr = 1; 
+					}
+					else{ noteRest.imgNr = 2; }
+				}
+				else{
+					//Is a rest
+				}
 
-	for(itemIx = 0; itemIx < this.musicItems.length; itemIx++){
-		var noteRest = this.musicItems[itemIx];
-		if(noteRest.isNote){
-			// Is a note, not a rest
-			if(noteRest.ticksLength < Q_NOTE * 2){
-				noteRest.imgNr = 0;
-			}
-			else if(noteRest.ticksLength < Q_NOTE * 4){
-				noteRest.imgNr = 1; 
-			}
-			else{ noteRest.imgNr = 2; }
-		}
-		else{
-			
-		}
-
-		var noteOct = Math.floor(noteRest.noteNr / 12); //Middle octave is 5.
-		var noteStep = noteRest.noteNr - (noteOct * 12); // C = 0..B = 11
-		var noteScaleStep = C_SCALE_FROM_CHROM[noteStep];// 0 - 6, Semitones has value *.5
-		noteRest.Ypos = this.noteToYPos[noteStep];
-		// Notes between scale steps is has notPosValue of *.5.
-		// Actual step is beeing calculated along with accidentals below
+				var noteOct = Math.floor(noteRest.noteNr / 12); //Middle octave is 5.
+				var noteStep = noteRest.noteNr - (noteOct * 12); // C = 0..B = 11
+				var noteScaleStep = C_SCALE_FROM_CHROM[noteStep];// 0 - 6, Semitones has value *.5
+				noteRest.Ypos = this.noteToYPos[noteStep];
+				// Notes between scale steps is has notPosValue of *.5.
+				// Actual step is beeing calculated along with accidentals below
 		
 
-		// *** HER MÅ DET VÆRE EN KLAR STRUKTUR:
-		// 			Dersom ingen ønsker i noteRest:
-		//			Hva med ranking av nærmeste trinn? 
-		//			Eks: skal sette inn F etter E og F#(løst fortegn)
-		//			Finner at current closest er E og F#, velger en av de. 
-		//			Dersom noteRest er i opprinnelig toneart velges trinn deretter
-		//			Siden F er i opprinnelig toneart velges den.
-		//			utover det velges iht gjelden toneart, # eller b-toneart.
-		
-		// Calculate accidental
-		// Sjekker nærmeste toner og rangerer etter hvor langt unna de er:
+				// *** HER MÅ DET VÆRE EN KLAR STRUKTUR:
+				// 			Dersom ingen ønsker i noteRest:
+				//			Hva med ranking av nærmeste trinn? 
+				//			Eks: skal sette inn F etter E og F#(løst fortegn)
+				//			Finner at current closest er E og F#, velger en av de. 
+				//			Dersom noteRest er i opprinnelig toneart velges trinn deretter
+				//			Siden F er i opprinnelig toneart velges den.
+				//			utover det velges iht gjelden toneart, # eller b-toneart.
+				
+				// Calculate accidental
+				// Sjekker nærmeste toner og rangerer etter hvor langt unna de er:
 	
 
-		var noteNeedNoAcc = false;
-		var accNeeded = 99;
-		for(i = 0; i < 7; i++){
-			if(noteStep == this.cScaleSteps[i]){
-				var i2;
-				noteNeedNoAcc = true;
-				for(i2 = this.tmpAccidentals.length - 1; i2 >= 0; i2--){
-					var tmpA = this.tmpAccidentals[i2];
-					if(tmpA.ticksPos <= noteRest.ticksPos && i == tmpA.cScaleStep){
-						noteNeedNoAcc = false;
-						alert("Scalestep " + i +" has prev loose acc");
+				var noteNeedNoAcc = false;
+				var accNeeded = 99;
+				for(i = 0; i < 7; i++){
+					if(noteStep == this.cScaleSteps[i]){
+						var i2;
+						noteNeedNoAcc = true;
+						for(i2 = this.tmpAccidentals.length - 1; i2 >= 0; i2--){
+							var tmpA = this.tmpAccidentals[i2];
+							if(tmpA.ticksPos <= noteRest.ticksPos && i == tmpA.cScaleStep){
+								noteNeedNoAcc = false;
+								alert("Scalestep " + i +" has prev loose acc");
+								break;
+							}
+						}
 						break;
+					}	
+				}
+
+
+				if(!noteNeedNoAcc){
+					//notePosX += (padding * spacingPx);
+					// Note is not in key, accidental must be set:
+					if(noteRest.blwabv == 0){
+						if(noteIsInCScale(noteStep)){
+							// Note can be set to natural:
+							noteRest.shownAcc = 0;
+							//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep, 0));
+							if(this.key > 0){ noteRest.Ypos -= 0.25; }
+							else{ noteRest.Ypos += 0.25; }
+						}
+						else if(this.key > 0){
+							noteRest.shownAcc = 1;
+							//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep - 0.5 , 1));
+							noteRest.Ypos += 0.25;
+						}
+						else{
+							noteRest.shownAcc = -1;
+							//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep + 0.5, -1));
+							noteRest.Ypos -= 0.25;
+						}
 					}
 				}
-				break;
-			}	
-		}
 
-
-		if(!noteNeedNoAcc){
-			//notePosX += (padding * spacingPx);
-			// Note is not in key, accidental must be set:
-			if(noteRest.blwabv == 0){
-				if(noteIsInCScale(noteStep)){
-					// Note can be set to natural:
-					noteRest.shownAcc = 0;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep, 0));
-					if(this.key > 0){ noteRest.Ypos -= 0.25; }
-					else{ noteRest.Ypos += 0.25; }
-				}
-				else if(this.key > 0){
-					noteRest.shownAcc = 1;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep - 0.5 , 1));
-					noteRest.Ypos += 0.25;
-				}
-				else{
-					noteRest.shownAcc = -1;
-					//this.addTmpAcc(new TmpAcc(noteRest.ticksPos, noteScaleStep + 0.5, -1));
-					noteRest.Ypos -= 0.25;
-				}
-			}
-		}
-
-		noteRest.Ypos -= ((noteOct - 6) * 3.5);
-		noteRest.Ypos += itemImagesInfo[this.clefNr].param1;
-
-		if(noteRest.isNote){
-
-					// Calculating stem:
-			if(noteRest.ticksLength < Q_NOTE * 4){
-				var info = itemImagesInfo[0];
-				noteRest.stemLength = -3;
-				if(noteRest.Ypos <= 1.5){ noteRest.stemLength = 4; }
-				if(noteRest.Ypos > 4.5 || noteRest.Ypos < -1.5){
-					noteRest.stemLength = 2 - noteRest.Ypos;
-				}
-				//alert("Stem length = " + noteRest.stemLength);
+				noteRest.Ypos -= ((noteOct - 6) * 3.5);
+				noteRest.Ypos += itemImagesInfo[this.clefNr].param1; //Adapt to current clef
 				
-				//Setting startpoint of stem (as offset from note pos)
-				if(noteRest.stemLength > 0){
-					noteRest.stemXoffset = itemImagesInfo[noteRest.imgNr].param1;
-					noteRest.stemYoffset = itemImagesInfo[noteRest.imgNr].param3;
+				//Adding to the total Ypos in order to calculate the average:
+				voiceTick.avgYpos += noteRest.Ypos;
+				
+
+				if(noteRest.isNote){
+					// Calculating stem:
+					if(voiceTick.ticksLength < Q_NOTE * 4){
+
+						var info = itemImagesInfo[0];
+						noteRest.stemLength = -3;
+						if(noteRest.Ypos <= 1.5){ noteRest.stemLength = 4; }
+						if(noteRest.Ypos > 4.5 || noteRest.Ypos < -1.5){
+							noteRest.stemLength = 2 - noteRest.Ypos;
+						}
+						//alert("Stem length = " + noteRest.stemLength);
+				
+						//Setting startpoint of stem (as offset from note pos)
+						if(noteRest.stemLength > 0){
+							noteRest.stemXoffset = itemImagesInfo[noteRest.imgNr].param1;
+							noteRest.stemYoffset = itemImagesInfo[noteRest.imgNr].param3;
+						}
+						else{
+							noteRest.stemXoffset = itemImagesInfo[noteRest.imgNr].param2;
+							noteRest.stemYoffset = itemImagesInfo[noteRest.imgNr].param4;
+						}
+						noteRest.stemLength -= noteRest.stemYoffset;
+					}
 				}
 				else{
-					noteRest.stemXoffset = itemImagesInfo[noteRest.imgNr].param2;
-					noteRest.stemYoffset = itemImagesInfo[noteRest.imgNr].param4;
+					
+					if(voiceTick.ticksLength >= 2 * Q_NOTE){	}
 				}
-				noteRest.stemLength -= noteRest.stemYoffset;
+			}//noteRests
+
+			voiceTick.avgYpos = voiceTick.avgYpos / voiceTick.noteRests.length;
+			this.setNotesXposCode(voiceTick);
+		}//VoiceTicks
+	}//staffTicks
+};
+
+// This method sets the correct x position of notes in a voice tick.
+// Takes care of unisons and seconds and sets the XposCode in the noteRests.
+Staff_Measure.prototype.setNotesXposCode = function(voiceTick){
+	if(voiceTick.noteRests.length > 1){
+		if(voiceTick.noteRests.length == 2){
+			// Check if second or unison. 
+			// Set the upper note to the right side, Check for stem direction!
+			if(Math.abs(voiceTick.noteRests[0].Ypos - voiceTick.noteRests[1].Ypos) < 1){
+				if(voiceTick.avgYpos >= HIGHEST_UPSTEM_YPOS){
+					voiceTick.noteRests[0].XposCode = 0;
+					voiceTick.noteRests[1].XposCode = 1;
+				}
+				else{
+					voiceTick.noteRests[0].XposCode = 1;
+					voiceTick.noteRests[1].XposCode = 0;
+				}	
+			}
+			else{
+				voiceTick.noteRests[0].XposCode = 0;
+				voiceTick.noteRests[1].XposCode = 0;
 			}
 		}
 		else{
-			
-			if(noteRest.ticksLength >= 2 * Q_NOTE){	}
+			// Three notes or more, define main (index 0) and alternative note columns:
+			var columns = []; // An array of column arrays. 
+			columns[0] = [];
+			var columnsYposBiases = [];; // An array with the Ypos value of the lowest note in the column.
+			var nrAtIx,nrAtPrevIx;
+			for(var i = 0; i < voiceTick.noteRests.length; i++){
+				nrAtIx = voiceTick.noteRests[i];
+				if(i == 0){ 
+				nrAtIx.XposCode = 0;
+				columns[0].push(nrAtIx);
+				columnsYposBiases.push(nrAtIx.Ypos);
+
+				}
+				else{
+					if(i > 0 && nrAtPrevIx.Ypos - nrAtIx.Ypos < 1){
+						// CONFLICT: Find first availiable column, create new column if needed
+						var noteSlotFound = false;
+						for(var i2 = 0; i2 < columns.length; i2++){
+							if(columns[i2][Math.floor(columnsYposBiases[i2] - nrAtIx.Ypos)] == undefined){
+								if(columns[i2][Math.floor(columnsYposBiases[i2] - nrAtIx.Ypos) - 1] == undefined || 
+								   columns[i2][Math.floor(columnsYposBiases[i2] - nrAtIx.Ypos) - 1].Ypos - nrAtIx.Ypos > 0.5){ 
+									// Availiable slot in existing column: 
+									nrAtIx.XposCode = i2;
+									columns[i2][Math.floor(columnsYposBiases[i2] - nrAtIx.Ypos)] = nrAtIx;
+									noteSlotFound = true;
+									break;
+								}
+							}
+
+						}
+						if(!noteSlotFound){
+							// Must create new column, then push noteRest:
+							var newColumn = [];
+							columnsYposBiases.push(nrAtIx.Ypos);
+							nrAtIx.XposCode = columns.length;
+							newColumn.push(nrAtIx);
+							columns.push(newColumn);
+							//alert("New c created, columns length: " + columns.length + "new colum length: " + newColumn.length);
+						}
+					}
+					else{
+						// No conflict between this and lower note:
+						nrAtIx.XposCode = 0;
+						columns[0][Math.floor(columnsYposBiases[0] - nrAtIx.Ypos)] = nrAtIx;
+					}
+				}
+				nrAtPrevIx = nrAtIx;
+			}
 		}
+	
 	}
-	//END MusicItems
+	else{ voiceTick.noteRests[0].XposCode = 0; }
 };
 
 
@@ -1053,128 +1154,152 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	var innerWidth = innerRightX - innerLeftX;
 	var prevNoteRest, ticksGap, ticksGapPosX;
 
-	for(var itemIx = 0; itemIx < this.musicItems.length; itemIx++){
-		var noteRest = this.musicItems[itemIx];
+	var staffTick, voiceTick, noteRest;
+	for(var staffTickIx = 0; staffTickIx < this.staffTicks.length; staffTickIx++){
+		staffTick = this.staffTicks[staffTickIx];
+		for(var voiceTickIx = 0; voiceTickIx < staffTick.voiceTicks.length; voiceTickIx++){
+			voiceTick = staffTick.voiceTicks[voiceTickIx];
+			for(var noteRestIx = 0; noteRestIx < voiceTick.noteRests.length; noteRestIx++){
+				noteRest = voiceTick.noteRests[noteRestIx];
+				//alert("Rendering noteRest noteNr: " + noteRest.noteNr);
 
-		
-		// Filling in with rests if gap in music:
-		ticksGap = 0
-		if(itemIx == 0){
-			// Rendering of initial rest in measure:
-			ticksGap = noteRest.ticksPos;
-			if(ticksGap > 0){
-				var ticksRemainingRest = this.renderRest(ticksGap, innerLeftX, topY + 2* spacingPx);
-			}			
-		}
-		else{
-			// Rendering of in-between rests in measure:
-			ticksGap = noteRest.ticksPos - (prevNoteRest.ticksPos + prevNoteRest.ticksLength); 
-			if(ticksGap > 0){
-				ticksGapPosX = prevNoteRest.ticksPos + prevNoteRest.ticksLength;
-				var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;	
-				var ticksRemainingrest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
-			}
-		}
-		
-		if(itemIx == this.musicItems.length - 1){
-			// Rendering of ending rests in measure:
-			ticksGap = this.totalTicks - (noteRest.ticksPos + noteRest.ticksLength);	 
-			if(ticksGap > 0){
-				//alert("Ticksgap fra siste note: " + ticksGap);
-				ticksGapPosX = noteRest.ticksPos + noteRest.ticksLength;
-				var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;
-				var remainingRest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
-			}
-		}
-
-		var notePosX = innerLeftX + (innerWidth / this.totalTicks) * noteRest.ticksPos; 
-
-		// NEW rendering: Using params already defined in noteRest:
-		var notePosY = topY + (noteRest.Ypos * spacingPx);	
-		// Notes between scale steps is has notPosValue of *.5.
-		// Actual step is beeing calculated along with accidentals below
-		if(noteRest.isNote){
-			// noteRest is a note, NOT a rest:
-			// Rendering the stem:
-			var info = itemImagesInfo[noteRest.imgNr];
-			if(stemW < 1){ stemW = 1; };
-			var stemXpx = notePosX + (noteRest.stemXoffset * spacingPx);
-			var stemYstartPx = notePosY + (noteRest.stemYoffset * spacingPx);
-			context.lineWidth = stemW;
-			context.beginPath();
-			context.moveTo(stemXpx, stemYstartPx);
-			context.lineTo(stemXpx, stemYstartPx + (noteRest.stemLength * spacingPx));
-			context.stroke();
-			
-			// Flags and beams:
-			// Temporary: Flags only
-			if(noteRest.ticksLength < Q_NOTE * 2){
-				this.renderFlags(noteRest.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
-			}
-
-			//Drawing ledger lines:
-			var staffLowY = topY + 4 * spacingPx;
-			var ledgeDelta = 1.35;
-			if(noteRest.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
-			if(notePosY > staffLowY){
-				var noOfLines = 0.5 + ((notePosY - staffLowY) / spacingPx);
-				context.lineWidth = lineW;
-				context.beginPath();
-				for(i = 1; i <= noOfLines; i++){
-					context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4,  staffLowY + i * spacingPx);
-					context.lineTo(notePosX + spacingPx * ledgeDelta, staffLowY + i * spacingPx);	
-				}
-				context.stroke();
-			}
-			else if(notePosY < topY - spacingPx){	
-				var noOfLines = ((topY - notePosY) / spacingPx) - 0.5;
-				context.lineWidth = lineW;
-				context.beginPath();
-				for(i = 1; i <= noOfLines; i++){
-					context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4, topY - i * spacingPx);
-					context.lineTo(notePosX + spacingPx * ledgeDelta, topY - i * spacingPx);	
-				}
-				context.stroke();
-			}
-
-
-
-
-
-
-
-			renderImage(noteRest.imgNr, notePosX, notePosY);
-			
-			
-			//dot testing only
-			/*
-			context.beginPath();
-			//alert("PosY = " + noteRest.Ypos);
-			var deltaDotPosY = spacingPx * 0.5;
-			if(noteRest.Ypos != Math.floor(noteRest.Ypos)){ deltaDotPosY = 0; }
-			var dotPosX = notePosX + itemImagesInfo[noteRest.imgNr].width * spacingPx + spacingPx * 0.5;
-			context.arc(dotPosX, notePosY + deltaDotPosY, spacingPx/6, 0, 2 * Math.PI);
-			context.fill();
-			context.stroke();
-			*/
-		}
-		else{
-			// noteRest is a rest:
-			if(noteRest.ticksLength >= 2 * Q_NOTE){
-				if(noteRest.ticksLength >= 4 * Q_NOTE){
-					context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
+				
+				// Filling in with rests if gap in music:
+				/*
+				ticksGap = 0
+				if(noteRestIx == 0){
+					// Rendering of initial rest in measure:
+					ticksGap = staffTick..ticksPos;
+					if(ticksGap > 0){
+						var ticksRemainingRest = this.renderRest(ticksGap, innerLeftX, topY + 2* spacingPx);
+					}			
 				}
 				else{
-					context.fillRect(notePosX, topY + spacingPx * 1.5, spacingPx, spacingPx / 2);
+					// Rendering of in-between rests in measure:
+					ticksGap = staffTicks.ticksPos - (prevStaffTick.ticksPos + prevStaffTick.ticksLength); 
+					if(ticksGap > 0){
+						ticksGapPosX = prevNoteRest.ticksPos + prevNoteRest.ticksLength;
+						var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;	
+						var ticksRemainingrest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
+					}
 				}
+				
+				if(noteRestIx == this..length - 1){
+					// Rendering of ending rests in measure:
+					ticksGap = this.totalTicks - (noteRest.ticksPos + noteRest.ticksLength);	 
+					if(ticksGap > 0){
+						//alert("Ticksgap fra siste note: " + ticksGap);
+						ticksGapPosX = noteRest.ticksPos + noteRest.ticksLength;
+						var restPosXPx = innerLeftX + (innerWidth / this.totalTicks) * ticksGapPosX;
+						var remainingRest = this.renderRest(ticksGap, restPosXPx, topY + 2 * spacingPx);
+					}
+				}
+				*/
+
+				var notePosX = innerLeftX + (innerWidth / this.totalTicks) * staffTick.ticksPos; 
+				
+				// Adjusting the notePosX based on the noteRest.XposCode setting:
+				if(noteRest.XposCode != 0){
+					if(voiceTick.avgYpos >= HIGHEST_UPSTEM_YPOS){
+						//upstem: main column to the left of the stem
+						notePosX += noteRest.XposCode * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
+					}
+					else{
+						//downstem: main column to the right of the stem. Additional columns further to the right.
+						if(noteRest.XposCode == 1){
+							notePosX -= noteRest.XposCode * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
+						}
+						else{
+							notePosX += noteRest.XposCode * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
+						}
+					}
+				}
+
+				// NEW rendering: Using params already defined in noteRest:
+				var notePosY = topY + (noteRest.Ypos * spacingPx);	
+				// Notes between scale steps is has notPosValue of *.5.
+				// Actual step is beeing calculated along with accidentals below
+				if(noteRest.isNote){
+					
+					
+					
+					// noteRest is a note, NOT a rest:
+					// Rendering the stem:
+					var info = itemImagesInfo[noteRest.imgNr];
+					if(stemW < 1){ stemW = 1; };
+					var stemXpx = notePosX + (noteRest.stemXoffset * spacingPx);
+					var stemYstartPx = notePosY + (noteRest.stemYoffset * spacingPx);
+					context.lineWidth = stemW;
+					context.beginPath();
+					context.moveTo(stemXpx, stemYstartPx);
+					context.lineTo(stemXpx, stemYstartPx + (noteRest.stemLength * spacingPx));
+					context.stroke();
+					
+					// Flags and beams:
+					// Temporary: Flags only
+					if(voiceTick.ticksLength < Q_NOTE * 2){
+						this.renderFlags(voiceTick.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
+					}
+		
+					//Drawing ledger lines:
+					var staffLowY = topY + 4 * spacingPx;
+					var ledgeDelta = 1.35;
+					if(voiceTick.ticksLength <= Q_NOTE * 4){ ledgeDelta = 1.73; }
+					if(notePosY > staffLowY){
+						var noOfLines = 0.5 + ((notePosY - staffLowY) / spacingPx);
+						context.lineWidth = lineW;
+						context.beginPath();
+						for(i = 1; i <= noOfLines; i++){
+							context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4,  staffLowY + i * spacingPx);
+							context.lineTo(notePosX + spacingPx * ledgeDelta, staffLowY + i * spacingPx);	
+						}
+						context.stroke();
+					}
+					else if(notePosY < topY - spacingPx){	
+						var noOfLines = ((topY - notePosY) / spacingPx) - 0.5;
+						context.lineWidth = lineW;
+						context.beginPath();
+						for(i = 1; i <= noOfLines; i++){
+							context.moveTo(notePosX - info.param1 * spacingPx - spacingPx * 0.4, topY - i * spacingPx);
+							context.lineTo(notePosX + spacingPx * ledgeDelta, topY - i * spacingPx);	
+						}
+						context.stroke();
+					}
+					// Rendering the notehead
+					renderImage(noteRest.imgNr, notePosX, notePosY);		
+			
+					//dot testing only
+					/*
+					context.beginPath();
+					//alert("PosY = " + noteRest.Ypos);
+					var deltaDotPosY = spacingPx * 0.5;
+					if(noteRest.Ypos != Math.floor(noteRest.Ypos)){ deltaDotPosY = 0; }
+					var dotPosX = notePosX + itemImagesInfo[noteRest.imgNr].width * spacingPx + spacingPx * 0.5;
+					context.arc(dotPosX, notePosY + deltaDotPosY, spacingPx/6, 0, 2 * Math.PI);
+					context.fill();
+					context.stroke();
+					*/	
+				}
+				else{
+					// noteRest is a rest:
+					if(voiceTick.ticksLength >= 2 * Q_NOTE){
+						if(voiceTick.ticksLength >= 4 * Q_NOTE){
+							context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
+						}
+						else{
+							context.fillRect(notePosX, topY + spacingPx * 1.5, spacingPx, spacingPx / 2);
+						}
+					}
+				}
+		
+				var prevNoteRest = noteRest;
+	
 			}
 		}
-
-		var prevNoteRest = noteRest;
 	}
-	
+			
 	// Filling in with bar rests:
-	if(this.musicItems.length == 0){
+	if(this.staffTicks.length == 0){
 		context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
 	}
 };
@@ -1447,16 +1572,15 @@ var Clef = function(clefNr, qNoteNr, ticksPos){
 };
 
 
-var NoteRest = function(isNote, noteNr, blwabv , ticksPos, ticksLength){
+var NoteRest = function(isNote, noteNr){
 	this.isNote = isNote;
 	this.noteNr = noteNr; // Middle c = 60 ( midi standard)
-	this.blwabv = blwabv; // -1=if not in scale, note below with sharp/nat. 1: above 0:no opinioni.
+	this.blwabv = 0; // -1=if not in scale, note below with sharp/nat. 1: above 0:no opinioni.
 	this.forceAcc = false;
 	this.shownAcc = 99;
-	this.ticksPos = ticksPos;
-	this.ticksLength = ticksLength;
 	this.Xpos;
 	this.Ypos;
+	this.XposCode; // 0 = normal placement, 1 = alternative placement. 2 = 2nd alt placem etc.
 	this.imgNr;
 	this.forcedStemDir = 0;
 	this.stemLength = 0;
@@ -1504,9 +1628,42 @@ var TmpAcc = function(ticksPos, cScaleStep, accValue){
 	this.accValue = accValue;
 }
 
-//  a StaffTick is stored in the Staff everytime a tick has special needs: More width
-// One width = spacing between staff lines.
-var Tick = function(ticksPos, width){
+//  All music items at one particular tick is stored in a StaffTick.
+// The StaffTick objects are stored in order in the staff_measure staffTicks array
+var StaffTick = function(ticksPos){
 	this.ticksPos = ticksPos;
-	this.width = width;
+	this.width; // the width needed by the items on this tick in this staff
+	this.voiceTicks = []; //Contains voiceTicks which contains noteRests- 
 }
+
+StaffTick.prototype.addNoteRest = function(noteRest, ticksLength, voiceNr){
+	if(this.voiceTicks[voiceNr] == undefined){ this.voiceTicks[voiceNr] = new VoiceTick(ticksLength); }
+	this.voiceTicks[voiceNr].addNoteRest(noteRest);
+};
+
+// VoiceTick objects contains the noteRests of one voice at one tick position.
+// It is responsible for stem, beams/flag and articulation.
+VoiceTick = function(ticksLength){ 
+	this.ticksLength = ticksLength;
+	this.noteRests = [];
+	this.beams = []; // Storing all beams. index 0 = semi quaver beams
+	this.width;
+	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
+}
+
+
+VoiceTick.prototype.addNoteRest = function(noteRest){
+	// adding the noteRest while maintaining the lowest to highest note order:
+	if(this.noteRests.length == 0 || this.noteRests[this.noteRests.length - 1].noteNr <= noteRest.noteNr){
+		this.noteRests.push(noteRest);
+	}
+	else{
+		for(var i = 0; i < this.noteRests.length; i++){
+			if(this.noteRests[i].noteNr >= noteRest.noteNr){
+				this.noteRests.splice(i, 0, noteRest);
+				break;
+			}
+		}
+	}
+}
+
