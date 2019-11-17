@@ -5,13 +5,12 @@
 
 // Set TAB = 4 spaces for comment alignment
 
-// Globals:
 var canvas;
 var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =30; // The main zoom level: Spacing between lines in a staff
+var spacingPx =10; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
@@ -19,7 +18,7 @@ var emptyBarMinSpace = 32; // Releated to spacing
 var restsMaxNrDots = 2; // The maximum nr of dots on a rest.
 var stemW = spacingPx/30;
 var HIGHEST_UPSTEM_YPOS = 2.0;
-
+var BEAM_THICKNESS = 0.4;
 
 var staffs = [];
 var musicSystem; // The main score, all staffs combined
@@ -60,7 +59,7 @@ window.onload = function(){
 
 	score.masterStaff.insertKey(new Key(0, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
-	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE * 2, Q_NOTE * 2];
+	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE, Q_NOTE, Q_NOTE, Q_NOTE];
 
 	score.staffs[0] = new Staff(this.masterStaff);
 	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
@@ -75,21 +74,29 @@ window.onload = function(){
 
 	score.appendMeasures(33);
 
-	//NoteRest(isNote, noteNr, ticksLength)
-	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);//noteRest, ticksPos, measureNr, staffNr, VoiceNr 
-	score.addNoteRest(new NoteRest(true, 71), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 71), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
-	score.addNoteRest(new NoteRest(true, 36), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4, Q_NOTE * 0.5,  0, 0, 0);
+	//NoteRest(isNote, noteNr)
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0);//noteR, ticksL, ticksPos, measureNr, staffNr, VoiceNr 
+	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 0.5, Q_NOTE * 0.5,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 1.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.5,  0, 0, 0); 
+	//score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 0.5, Q_NOTE * 2.0,  0, 0, 0); 
+	//score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 3.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 1.0, Q_NOTE * 3.0,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
 
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
 
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 0.0,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 0.5,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.0,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.5,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 1.0, Q_NOTE * 2.0,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 1.0, Q_NOTE * 3.0,  2, 0, 0);
 
 
 
@@ -726,7 +733,7 @@ Staff.prototype.insertClef = function(newClef){
 		}
 	}
 };
-
+// S_M
 var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMeasure){
 	//alert("opprettelse av Staff_Measure");
 	this.systemMeasure = systemMeasure;
@@ -743,6 +750,7 @@ var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMe
 	this.showInitKey = this.systemMeasure.showInitKey;
 	this.showInitTimeSig = this.systemMeasure.showInitTimeSig;
 	this.staffTicks = []; // a staff tick contains all the noteRests at one particular tick location
+	this.noOfVoices;
 	this.shortestInBarTicks = 0;
 	// graph_items stores all graphical items in the bar and their positioning info:
 	this.graph_items = [];
@@ -756,6 +764,8 @@ var Staff_Measure = function(topMeter, bottomMeter, key, clefNr, staff, systemMe
 
 	this.updateCScaleSteps();
 	this.updateNoteToYPosTable();
+
+	this.voiceBeamGroups = []; // A beamgroup is a potential 8th note beam. The groups are according to the time signature. 
 };
 
 Staff_Measure.prototype.updateCScaleSteps = function(){
@@ -832,6 +842,7 @@ Staff_Measure.prototype.addTmpAcc = function(tmpA){
 	}
 }
 
+// BUILD
 //Method to be called when a staff measure has been created or edited:
 Staff_Measure.prototype.buildGraphic = function(){
 	this.pitchOffset = itemImagesInfo[this.clefNr].param1;
@@ -887,8 +898,10 @@ Staff_Measure.prototype.buildGraphic = function(){
 
 	//musicItems
 	var staffTick, voiceTick, noteRest;
+	this.noOfVoices = 0;
 	for(staffTickIx = 0; staffTickIx < this.staffTicks.length; staffTickIx++){
 		staffTick = this.staffTicks[staffTickIx];
+		if(this.noOfVoices < staffTick.voiceTicks.length){ this.noOfVoices++; }
 		for(voiceTickIx = 0; voiceTickIx < staffTick.voiceTicks.length; voiceTickIx++){
 			voiceTick = staffTick.voiceTicks[voiceTickIx];
 			voiceTick.avgYpos = 0;
@@ -974,10 +987,7 @@ Staff_Measure.prototype.buildGraphic = function(){
 
 				noteRest.Ypos -= ((noteOct - 6) * 3.5);
 				noteRest.Ypos += itemImagesInfo[this.clefNr].param1; //Adapt to current clef
-				
-				//Adding to the total Ypos in order to calculate the average:
-				voiceTick.avgYpos += noteRest.Ypos;
-				
+								
 
 				if(noteRest.isNote){
 					// Calculating stem:
@@ -1009,10 +1019,27 @@ Staff_Measure.prototype.buildGraphic = function(){
 				}
 			}//noteRests
 
-			voiceTick.avgYpos = voiceTick.avgYpos / voiceTick.noteRests.length;
+			voiceTick.calcAverageYpos();
 			this.setNotesXposCode(voiceTick);
 		}//VoiceTicks
 	}//staffTicks
+
+	// Building the beams:
+	this.buildBeams();
+
+	/*
+	//testing the beams:
+	alert("TEST: Antall beamgrupper er nå " + this.voiceBeamGroups[0].length);
+	for(var ix = 0; ix < this.voiceBeamGroups[0].length; ix++){
+		alert("Test, antall beamGrupper: " + this.voiceBeamGroups[0].length);
+		for(var ix2 = 0; ix2 < this.voiceBeamGroups[0][ix].beams.length; ix2++){
+			var beam = this.voiceBeamGroups[0][ix].beams[ix2];
+			var antVTicks = beam.voiceTicks.length;
+			alert("Test, beamgruppe: " + ix + " beamNr: " + ix2 + " antVTicks: " + antVTicks);
+		}
+		
+	}
+	*/
 };
 
 // This method sets the correct x position of notes in a voice tick.
@@ -1092,9 +1119,37 @@ Staff_Measure.prototype.setNotesXposCode = function(voiceTick){
 	else{ voiceTick.noteRests[0].XposCode = 0; }
 };
 
+// This function creates the beamGroups
+Staff_Measure.prototype.buildBeams = function(){
+	//alert("building beams");
+	this.voiceBeamGroups = [];
+	
+	// Creating the beamGroups based on the time signature in the Sys Measure:
+	var nextStartTick = 0, currentBeamGroup;
+	for(var v = 0; v < this.noOfVoices; v++){
+		this.voiceBeamGroups[v] = [];
+		for(var i = 0; i < this.systemMeasure.timeSignature.beamGroups.length; i++){		
+			var currentBeamGroup = new BeamGroup(nextStartTick, nextStartTick + this.systemMeasure.timeSignature.beamGroups[i]);							
+			for(var staffTickIx = 0; staffTickIx < this.staffTicks.length; staffTickIx++){
+				var staffTick = this.staffTicks[staffTickIx];
+				if(staffTick.ticksPos >= currentBeamGroup.fromTick && staffTick.ticksPos < currentBeamGroup.toTick){
+					currentBeamGroup.voiceTicks.push(staffTick.voiceTicks[v]);
+					//alert("Pusher voiceTick inn i BeamGroup, antal vTicks er nå: " + currentBeamGroup.voiceTicks.length);
+				}
+				// This can be made quicker by not going through alle staffticks every time
+			}
+			currentBeamGroup.buildBeams();
+			this.voiceBeamGroups[v].push(currentBeamGroup);
+			//alert("Build beams: ant beamgrupper ett ny push: " + this.voiceBeamGroups[v].length);
+						
+		nextStartTick += this.systemMeasure.timeSignature.beamGroups[i];
+		}
+
+	}
+};
 
 
-
+// RND
 // leftX,topX indicates the point where the start of the upper staffline is.
 
 // Method to be called if a bar needs to be redrawn: 
@@ -1237,8 +1292,9 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 					
 					// Flags and beams:
 					// Temporary: Flags only
-					if(voiceTick.ticksLength < Q_NOTE * 2){
-						this.renderFlags(voiceTick.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
+
+					if(voiceTick.ticksLength < Q_NOTE){
+						//this.renderFlags(voiceTick.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
 					}
 		
 					//Drawing ledger lines:
@@ -1267,7 +1323,8 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 					}
 					// Rendering the notehead
 					renderImage(noteRest.imgNr, notePosX, notePosY);		
-			
+					noteRest.XposPx = notePosX;
+					noteRest.YposPx = notePosY;
 					//dot testing only
 					/*
 					context.beginPath();
@@ -1302,6 +1359,42 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 	if(this.staffTicks.length == 0){
 		context.fillRect(innerLeftX + innerWidth/2 - spacingPx / 2, topY + spacingPx, spacingPx, spacingPx / 2);
 	}
+	this.renderBeamsFlagsStems();
+};
+
+Staff_Measure.prototype.renderBeamsFlagsStems = function(){
+	var voice, beamGroup, beam;
+	for(var v = 0;  v < this.voiceBeamGroups.length; v++){
+
+		for(bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
+			beamGroup = this.voiceBeamGroups[v][bg];
+			for(b = 0; b < beamGroup.beams.length; b++){
+				beam = beamGroup.beams[b];
+				beam.calcPositions();
+				var upperLeftXPx = beam.leftTop.XposPx;
+				var upperLeftYPx = beam.leftTop.YposPx;
+				var upperRightXPx = beam.rightTop.XposPx;
+				var upperRightYPx = beam.rightTop.YposPx;
+				upperLeftYPx -= (spacingPx * 3.0);
+				upperRightYPx -= (spacingPx * 3.0);
+				upperLeftXPx += itemImagesInfo[beam.leftTop.imgNr].width * spacingPx;
+				upperRightXPx += itemImagesInfo[beam.rightTop.imgNr].width * spacingPx;
+				
+				//alert("KOORDINATER " + upperLeftXPx + " " + upperLeftYPx);
+
+				context.beginPath();
+				context.moveTo(upperLeftXPx, upperLeftYPx);
+				context.lineTo(upperRightXPx, upperRightYPx);
+				context.lineTo(upperRightXPx, upperRightYPx + spacingPx * BEAM_THICKNESS);
+				context.lineTo(upperLeftXPx, upperLeftYPx + spacingPx * BEAM_THICKNESS);
+				context.lineTo(upperLeftXPx, upperLeftYPx);
+				context.fill();
+				context.stroke();
+
+
+			}
+		}
+	}	
 };
 
 Staff_Measure.prototype.renderFlags = function(ticksLength, stemRootXPx, stemRootYPx, stemLengthPx){
@@ -1581,6 +1674,8 @@ var NoteRest = function(isNote, noteNr){
 	this.Xpos;
 	this.Ypos;
 	this.XposCode; // 0 = normal placement, 1 = alternative placement. 2 = 2nd alt placem etc.
+	this.XposPx;
+	this.YposPx;
 	this.imgNr;
 	this.forcedStemDir = 0;
 	this.stemLength = 0;
@@ -1649,7 +1744,7 @@ VoiceTick = function(ticksLength){
 	this.beams = []; // Storing all beams. index 0 = semi quaver beams
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
-}
+};
 
 
 VoiceTick.prototype.addNoteRest = function(noteRest){
@@ -1665,5 +1760,109 @@ VoiceTick.prototype.addNoteRest = function(noteRest){
 			}
 		}
 	}
-}
+};
+
+VoiceTick.prototype.calcAverageYpos = function(){
+	this.avgYpos = 0;
+	for(var i = 0; i < this.noteRests.length; i++){
+		this.avgYpos += this.noteRests[i].avgYpos;
+	}
+	this.avgYpos /= this.noteRests.length;
+};
+
+// the beamgroup is a collection of beams for one beam region. The objects are created by Staff_Measure.buildGraphic
+var BeamGroup = function(fromTick, toTick){ //toTick is EXCLUSIVE
+	this.fromTick = fromTick;
+	this.toTick = toTick;
+	this.voiceTicks = []; //An ordered array with all noteRests in the group.
+	this.beams =[]; // Stores the beams
+};
+
+BeamGroup.prototype.buildBeams = function(){
+	//alert("BeamGroup bygger beams, antall voiceTicks i beam: " + this.voiceTicks.length);
+	// Bygge beams her! 
+	// Sjekk om to eller flere som kan kobles sammen
+	var firstVoiceTickIx, lastVoiceTickIx, vtAtIx;
+	var readyForNew = true;
+	for(var i = 0; i < this.voiceTicks.length; i++){
+		vtAtIx = this.voiceTicks[i];
+		if(readyForNew && vtAtIx.ticksLength < Q_NOTE){ 
+			firstVoiceTickIx = i; 
+			readyForNew = false;
+		}
+		else if(!readyForNew && vtAtIx.ticksLength < Q_NOTE){
+			lastVoiceTickIx = i;
+		//	alert("beambygg, lastNoteIx: " + lastVoiceTickIx);
+		}
+		if(vtAtIx.ticksLength >= Q_NOTE || i == this.voiceTicks.length - 1){
+			//alert("nesten der, første, siste: " + firstVoiceTickIx + ", " + lastVoiceTickIx);
+			if(!readyForNew && lastVoiceTickIx > firstVoiceTickIx){
+				// We have a beam!
+				//alert("We have a beam, firstIx: " + firstVoiceTickIx);
+				this.beams.push(new Beam(this, 8, firstVoiceTickIx, lastVoiceTickIx));
+				readyForNew = true;
+			}
+		}
+
+	}
+
+};
+
+var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
+	this.beamGroup = beamGroup;
+	this.beamValue = beamValue;
+	this.fromNoteIndex = fromNoteIndex;
+	this.toNoteIndex = toNoteIndex;
+	this.voiceTicks = [];
+	this.avgYpos;
+	this.leftTop;
+	this.leftBot;
+	this.rightTop;
+	this.rightBot;
+	this.highestOnTop;
+	this.lowestOnBot;
+	this.totalAscend;
+	this.totalDescend;
+	this.isFlag;
+	this.flagDirIsLeft;
+	this.startXpos;
+	this.startYpos;
+	this.endXpos;
+	this.endYpos;
+};
+
+
+// this method is only needed for main beam (8th note beam)
+Beam.prototype.calcPositions = function(){
+	this.avgYpos = 0;
+	this.totalAscend = 0;
+	this.totalDescend = 0;
+	
+	var voiceTick;
+	for(var i = this.fromNoteIndex; i <= this.toNoteIndex; i++){
+		voiceTick = this.beamGroup.voiceTicks[i];
+		this.avgYpos += voiceTick.avgYpos;
+		if(i == 0){
+			this.leftTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
+			this.leftBot = voiceTick.noteRests[0];
+		}
+		else if(i == this.beamGroup.voiceTicks.length - 1){
+			this.rightTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
+			this.rightBot = voiceTick.noteRests[0];
+		}
+		if(voiceTick.noteRests[voiceTick.noteRests.length - 1] < this.highestOnTop){
+			this.highestOnTop = voicsTick.noteRests[voiceTick.noteRests.length - 1];
+		}
+		if(voiceTick.noteRests[0] > this.lowestYposOnBot){
+			this.lowestOnBot = voiceTick.noteRests[0];
+		}
+		if(i > 0){
+			var diff = voiceTick.avgYpos - this.beamGroup.voiceTicks[i-1].avgYpos;
+			if(diff > 0){ this.totalDescend += diff; }
+			else{ this.totalAscend += (-1 * diff);  }
+		}
+	}
+	this.avgYpos /= this.beamGroup.voiceTicks.length;
+};
+
 
