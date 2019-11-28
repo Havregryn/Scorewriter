@@ -10,7 +10,7 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =10; // The main zoom level: Spacing between lines in a staff
+var spacingPx =30; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
@@ -99,10 +99,12 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 1.0, Q_NOTE * 3.0,  2, 0, 0);
 
 
-
-
-
-
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
 
 
 
@@ -1265,7 +1267,7 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 							notePosX -= noteRest.XposCode * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
 						}
 						else{
-							notePosX += noteRest.XposCode * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
+							notePosX += (noteRest.XposCode - 1) * itemImagesInfo[noteRest.imgNr].width * spacingPx * 0.9;
 						}
 					}
 				}
@@ -1363,14 +1365,40 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 };
 
 Staff_Measure.prototype.renderBeamsFlagsStems = function(){
-	var voice, beamGroup, beam;
+	// To do:
+	// Helnoter: Ingenting å gjøre:
+	// 4d voiceticks eller større: Lag stem ut ifra vanlige regler
+	// Underdelinger utenom beams må få flagg, sjekk voiceTick.isBeamed.
+	// Noter knyttet til en beam må få en stem satt i henhold til dette
+
+	// Draw stem/flag on unbeamed notes:
+	var staffTick;
+	for(var stIx = 0; stIx < this.staffTicks.length; stIx++){
+		staffTick = this.staffTicks[stIx];
+		var vt;
+		for(var vtIx = 0; vtIx < staffTick.voiceTicks.length; vtIx++){
+			vt = staffTick.voiceTicks[vtIx];
+			if(!vt.isBeamed && vt.ticksLength < Q_NOTE * 4){
+				// HER SKAL STEM TEGNES!
+				// KOPIER FRA RENDER, men tilpass til voicetick
+			} 
+		}
+	}
+	
+	
+	
+	var voice, beamGroup, beam, stemDir;
 	for(var v = 0;  v < this.voiceBeamGroups.length; v++){
 
-		for(bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
+		for(var bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
 			beamGroup = this.voiceBeamGroups[v][bg];
-			for(b = 0; b < beamGroup.beams.length; b++){
+
+			for(var b = 0; b < beamGroup.beams.length; b++){
 				beam = beamGroup.beams[b];
 				beam.calcPositions();
+				
+				if(beam.avgYpos < HIGHEST_UPSTEM_YPOS){stemDir = 1;} else {stemDir = -1;}
+
 				var upperLeftXPx = beam.leftTop.XposPx;
 				var upperLeftYPx = beam.leftTop.YposPx;
 				var upperRightXPx = beam.rightTop.XposPx;
@@ -1680,7 +1708,7 @@ var NoteRest = function(isNote, noteNr){
 	this.forcedStemDir = 0;
 	this.stemLength = 0;
 	this.stemXoffset;
-	this.stemYoffset;
+	this.stemYoffset; 
 	this.type = "noteRest";
 };
 
@@ -1741,7 +1769,8 @@ StaffTick.prototype.addNoteRest = function(noteRest, ticksLength, voiceNr){
 VoiceTick = function(ticksLength){ 
 	this.ticksLength = ticksLength;
 	this.noteRests = [];
-	this.beams = []; // Storing all beams. index 0 = semi quaver beams
+	//this.beams = []; // Storing all beams. index 0 = semi quaver beams
+	this.isBeamed = false;
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
 };
@@ -1799,7 +1828,11 @@ BeamGroup.prototype.buildBeams = function(){
 			if(!readyForNew && lastVoiceTickIx > firstVoiceTickIx){
 				// We have a beam!
 				//alert("We have a beam, firstIx: " + firstVoiceTickIx);
-				this.beams.push(new Beam(this, 8, firstVoiceTickIx, lastVoiceTickIx));
+				var bm = new Beam(this, 8, firstVoiceTickIx, lastVoiceTickIx);
+				for(var vt = 0; vt < bm.voiceTicks.length; vt++){
+					bm.voiceTicks[vt].isBeamed = true;
+				}
+				this.beams.push(bm);
 				readyForNew = true;
 			}
 		}
