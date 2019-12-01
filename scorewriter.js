@@ -10,7 +10,7 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =30; // The main zoom level: Spacing between lines in a staff
+var spacingPx =15; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
@@ -59,7 +59,7 @@ window.onload = function(){
 
 	score.masterStaff.insertKey(new Key(0, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
-	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE, Q_NOTE, Q_NOTE, Q_NOTE];
+	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE * 4];
 
 	score.staffs[0] = new Staff(this.masterStaff);
 	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
@@ -75,37 +75,45 @@ window.onload = function(){
 	score.appendMeasures(33);
 
 	//NoteRest(isNote, noteNr)
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0);//noteR, ticksL, ticksPos, measureNr, staffNr, VoiceNr 
-	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 74), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0);//noteR, ticksL, ticksPos, measureNr, staffNr, VoiceNr 
+	score.addNoteRest(new NoteRest(true, 77), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 81), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 0.5, Q_NOTE * 0.5,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 1.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.5,  0, 0, 0); 
 	//score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 0.5, Q_NOTE * 2.0,  0, 0, 0); 
 	//score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 3.0,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 1.0, Q_NOTE * 3.0,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 48), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 83), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0);
+	score.addNoteRest(new NoteRest(true, 84), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0);
+
 	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
 	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
 	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
 	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
 
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
-
+	score.addNoteRest(new NoteRest(true, 46), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
+	
 	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 0.0,  2, 0, 0);
-	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 0.5,  2, 0, 0);
-	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.0,  2, 0, 0);
-	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.5,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 1.0, Q_NOTE * 0.5,  2, 0, 0);
+	//score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.0,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 84), Q_NOTE/16, Q_NOTE * 1.5,  2, 0, 0);
+	score.addNoteRest(new NoteRest(true, 72), Q_NOTE/16, Q_NOTE * 1.5,  2, 0, 0);
+
 	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 1.0, Q_NOTE * 2.0,  2, 0, 0);
 	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 1.0, Q_NOTE * 3.0,  2, 0, 0);
 
 
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 4.0, Q_NOTE * 0.0,  3, 0, 0);
-
+	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 62+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 64+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 65+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
 
 
 	score.addPart();
@@ -240,7 +248,7 @@ var Score = function(){
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
 
-	this.title = "Some Music";
+	this.title = "Beamer nå inklusive firedel, fiks!";
 	this.composer = "W. A. Mozart";
 }
 
@@ -1282,23 +1290,10 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 					
 					// noteRest is a note, NOT a rest:
 					// Rendering the stem:
-					var info = itemImagesInfo[noteRest.imgNr];
-					if(stemW < 1){ stemW = 1; };
-					var stemXpx = notePosX + (noteRest.stemXoffset * spacingPx);
-					var stemYstartPx = notePosY + (noteRest.stemYoffset * spacingPx);
-					context.lineWidth = stemW;
-					context.beginPath();
-					context.moveTo(stemXpx, stemYstartPx);
-					context.lineTo(stemXpx, stemYstartPx + (noteRest.stemLength * spacingPx));
-					context.stroke();
 					
-					// Flags and beams:
-					// Temporary: Flags only
+					
+					var info = itemImagesInfo[noteRest.imgNr];
 
-					if(voiceTick.ticksLength < Q_NOTE){
-						//this.renderFlags(voiceTick.ticksLength, stemXpx, stemYstartPx, noteRest.stemLength * spacingPx);
-					}
-		
 					//Drawing ledger lines:
 					var staffLowY = topY + 4 * spacingPx;
 					var ledgeDelta = 1.35;
@@ -1372,21 +1367,82 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 	// Noter knyttet til en beam må få en stem satt i henhold til dette
 
 	// Draw stem/flag on unbeamed notes:
-	var staffTick;
+	var staffTick, stemDir = -1;
 	for(var stIx = 0; stIx < this.staffTicks.length; stIx++){
 		staffTick = this.staffTicks[stIx];
 		var vt;
 		for(var vtIx = 0; vtIx < staffTick.voiceTicks.length; vtIx++){
 			vt = staffTick.voiceTicks[vtIx];
+			//alert(vt.isBeamed);
 			if(!vt.isBeamed && vt.ticksLength < Q_NOTE * 4){
 				// HER SKAL STEM TEGNES!
 				// KOPIER FRA RENDER, men tilpass til voicetick
+				
+				// Setting stemDir;
+				if(vt.forcedStemDir != 0){
+					stemDir = vt.forcedStemDir;
+				}
+				else{
+					if(staffTick.voiceTicks.length > 1){
+						// More than one voice, stemDir set by voiceNr
+						if(vtIx % 2 != 0){ stemDir = 1; } else{ stemDir = -1;  } 
+					}
+					else{
+						if(vt.avgYpos >= HIGHEST_UPSTEM_YPOS){
+							stemDir = -1;	
+						}
+						else{
+						//	alert(vt.avgYpos);
+							stemDir = 1;
+						}
+					}
+				}
+				var rootNote, spanNote, stemXpx, stemYstartPx; 
+				//stem is rooted in rootNotem The spanNote is the other extreme of the voiceTick.
+				if(stemDir < 0){
+					rootNote = vt.noteRests[0];
+					spanNote = vt.noteRests[vt.noteRests.length - 1];
+					var rootInfo = itemImagesInfo[rootNote.imgNr];
+					stemXpx = rootNote.XposPx + rootInfo.param2 * spacingPx;
+					stemYstartPx = rootNote.YposPx + rootInfo.param4 * spacingPx;
+				}
+				else{
+					rootNote = vt.noteRests[vt.noteRests.length - 1];
+					spanNote = vt.noteRests[0];
+					var rootInfo = itemImagesInfo[rootNote.imgNr];
+					stemXpx = rootNote.XposPx + rootInfo.param1 * spacingPx;
+					stemYstartPx = rootNote.YposPx + rootInfo.param3 * spacingPx;
+
+				}
+
+				//Setting stemlength unbeamed notes
+				var stemLength = 3;
+				if(spanNote.Ypos < -2 && stemDir > 0){ 
+					stemLength += (-1 * (spanNote.Ypos + 2)); 
+				}
+				else if(spanNote.Ypos > 5 && stemDir < 0){
+					stemLength += (spanNote.Ypos - 5);
+				}
+
+				var stemYendPx = spanNote.YposPx + stemDir * stemLength * spacingPx;
+				if(stemDir > 0) stemYendPx += spacingPx;
+				if(stemW < 1){ stemW = 1; };
+				
+				// Drawing stem unbeamed notes:
+				context.lineWidth = stemW;
+				context.beginPath();
+				context.moveTo(stemXpx, stemYstartPx);
+				context.lineTo(stemXpx, stemYendPx);
+				context.stroke();
+				
+				var stemYspanPx = spanNote.YposPx - (0.5 * stemDir * spacingPx) 
+				if(vt.ticksLength < Q_NOTE){
+					this.renderFlags(vt.ticksLength, stemXpx, stemYspanPx, stemYendPx - stemYspanPx);
+				}
 			} 
 		}
 	}
-	
-	
-	
+
 	var voice, beamGroup, beam, stemDir;
 	for(var v = 0;  v < this.voiceBeamGroups.length; v++){
 
@@ -1418,6 +1474,9 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 				context.lineTo(upperLeftXPx, upperLeftYPx);
 				context.fill();
 				context.stroke();
+
+				//render flags
+
 
 
 			}
@@ -1773,6 +1832,7 @@ VoiceTick = function(ticksLength){
 	this.isBeamed = false;
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
+	this.forcedStemDir = 0; // -1 = upStem, 1 = downStem
 };
 
 
@@ -1792,11 +1852,7 @@ VoiceTick.prototype.addNoteRest = function(noteRest){
 };
 
 VoiceTick.prototype.calcAverageYpos = function(){
-	this.avgYpos = 0;
-	for(var i = 0; i < this.noteRests.length; i++){
-		this.avgYpos += this.noteRests[i].avgYpos;
-	}
-	this.avgYpos /= this.noteRests.length;
+	this.avgYpos = (this.noteRests[0].Ypos + this.noteRests[this.noteRests.length - 1].Ypos)/2;
 };
 
 // the beamgroup is a collection of beams for one beam region. The objects are created by Staff_Measure.buildGraphic
@@ -1827,14 +1883,15 @@ BeamGroup.prototype.buildBeams = function(){
 			//alert("nesten der, første, siste: " + firstVoiceTickIx + ", " + lastVoiceTickIx);
 			if(!readyForNew && lastVoiceTickIx > firstVoiceTickIx){
 				// We have a beam!
-				//alert("We have a beam, firstIx: " + firstVoiceTickIx);
+				//alert("We have a beam, firstIx: " + firstVoiceTickIx + " last Ix: " + lastVoiceTickIx);
 				var bm = new Beam(this, 8, firstVoiceTickIx, lastVoiceTickIx);
-				for(var vt = 0; vt < bm.voiceTicks.length; vt++){
-					bm.voiceTicks[vt].isBeamed = true;
+				for(var vtIx = firstVoiceTickIx; vtIx <= lastVoiceTickIx; vtIx++){
+					this.voiceTicks[vtIx].isBeamed = true;
 				}
 				this.beams.push(bm);
-				readyForNew = true;
+				//readyForNew = true;
 			}
+			readyForNew = true;
 		}
 
 	}
@@ -1846,7 +1903,7 @@ var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
 	this.beamValue = beamValue;
 	this.fromNoteIndex = fromNoteIndex;
 	this.toNoteIndex = toNoteIndex;
-	this.voiceTicks = [];
+	//this.voiceTicks = [];
 	this.avgYpos;
 	this.leftTop;
 	this.leftBot;
@@ -1875,11 +1932,11 @@ Beam.prototype.calcPositions = function(){
 	for(var i = this.fromNoteIndex; i <= this.toNoteIndex; i++){
 		voiceTick = this.beamGroup.voiceTicks[i];
 		this.avgYpos += voiceTick.avgYpos;
-		if(i == 0){
+		if(i == this.fromNoteIndex){
 			this.leftTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
 			this.leftBot = voiceTick.noteRests[0];
 		}
-		else if(i == this.beamGroup.voiceTicks.length - 1){
+		else if(i == this.toNoteIndex){
 			this.rightTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
 			this.rightBot = voiceTick.noteRests[0];
 		}
@@ -1889,13 +1946,13 @@ Beam.prototype.calcPositions = function(){
 		if(voiceTick.noteRests[0] > this.lowestYposOnBot){
 			this.lowestOnBot = voiceTick.noteRests[0];
 		}
-		if(i > 0){
+		if(i > this.fromNoteIndex){
 			var diff = voiceTick.avgYpos - this.beamGroup.voiceTicks[i-1].avgYpos;
 			if(diff > 0){ this.totalDescend += diff; }
-			else{ this.totalAscend += (-1 * diff);  }
+			else{ this.totalAscend -= diff;  }
 		}
 	}
-	this.avgYpos /= this.beamGroup.voiceTicks.length;
+	this.avgYpos /= (this.toNoteIndex - this.fromNoteIndex);
 };
 
 
