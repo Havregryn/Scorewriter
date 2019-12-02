@@ -10,7 +10,7 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =15; // The main zoom level: Spacing between lines in a staff
+var spacingPx =20; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
@@ -88,10 +88,10 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 84), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0);
 
-	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 69), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
 
 	score.addNoteRest(new NoteRest(true, 46), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
 	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
@@ -115,6 +115,14 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
 	score.addNoteRest(new NoteRest(true, 60+12), Q_NOTE * 2.0, Q_NOTE * 0.0,  3, 0, 0);
 
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 0.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 59), Q_NOTE * 0.5, Q_NOTE * 0.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 57), Q_NOTE * 0.5, Q_NOTE * 1.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 55), Q_NOTE * 0.5, Q_NOTE * 1.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 53), Q_NOTE * 0.5, Q_NOTE * 2.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 52), Q_NOTE * 0.5, Q_NOTE * 2.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 50), Q_NOTE * 0.5, Q_NOTE * 3.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 48), Q_NOTE * 0.5, Q_NOTE * 3.5,  4, 0, 0);
 
 	score.addPart();
 	score.parts[0].addPage();
@@ -248,7 +256,7 @@ var Score = function(){
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
 
-	this.title = "Beamer nå inklusive firedel, fiks!";
+	this.title = "Beam: få ferdig fast vinkel, riktig avstand. linje 1500";
 	this.composer = "W. A. Mozart";
 }
 
@@ -1443,7 +1451,8 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 		}
 	}
 
-	var voice, beamGroup, beam, stemDir;
+	// Drawing beams and corresponding stems:
+	var voice, beamGroup, beam, beamAngle = 0, beamXYcoeff; // beamAngle: -2 = descending, +2 ascending
 	for(var v = 0;  v < this.voiceBeamGroups.length; v++){
 
 		for(var bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
@@ -1452,19 +1461,79 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 			for(var b = 0; b < beamGroup.beams.length; b++){
 				beam = beamGroup.beams[b];
 				beam.calcPositions();
-				
-				if(beam.avgYpos < HIGHEST_UPSTEM_YPOS){stemDir = 1;} else {stemDir = -1;}
 
-				var upperLeftXPx = beam.leftTop.XposPx;
-				var upperLeftYPx = beam.leftTop.YposPx;
-				var upperRightXPx = beam.rightTop.XposPx;
-				var upperRightYPx = beam.rightTop.YposPx;
-				upperLeftYPx -= (spacingPx * 3.0);
-				upperRightYPx -= (spacingPx * 3.0);
-				upperLeftXPx += itemImagesInfo[beam.leftTop.imgNr].width * spacingPx;
-				upperRightXPx += itemImagesInfo[beam.rightTop.imgNr].width * spacingPx;
+
+				// Setting stemDir:
+				// Checking if first note in beam has forced stemDir:
+				if(beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir != 0){
+					stemDir = beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir;
+				}
+				else{
+					if(this.noOfVoices > 1){
+						// More than one voice, stemDir set by voiceNr
+						if(v % 2 != 0){ stemDir = 1; } else{ stemDir = -1;  } 
+					}
+					else{
+						if(beam.avgYpos >= HIGHEST_UPSTEM_YPOS){
+							stemDir = -1;	
+						}
+						else{
+						//	alert(vt.avgYpos);
+							stemDir = 1;
+						}
+					}
+				}
+				// Beam vinkel: settes ved avstand start, slutt.
+				// 0 = flat. 0.5 - 1 = liten vinkel. > 1 = stor vinkel
+				//
+				// Beam avstand: 8del beam settes av minste underdeling i beam og
+				// ekstremnote. Prøve først: Se bort fra sub-beams.
+				var upperLeftXPx, upperLeftYPx, upperRightXPx, upperRightYPx;
+				var firstNoteInfo, lastNoteInfo, extremeNoteInfo;
 				
-				//alert("KOORDINATER " + upperLeftXPx + " " + upperLeftYPx);
+
+				// setting beamAngle:
+
+				if(beam.weightedAscend < -4){ beamAngle = -2; }
+				else if(beam.weightedAscend < -2){ beamAngle = -1;  }
+				else if(beam.weightedAscend > 4){ beamAngle = 2; }
+				else if(beam.weightedAscend > 2){ beamAngle = 1; }
+				
+				if(stemDir < 0){
+					firstNoteInfo = itemImagesInfo[beam.leftTop.imgNr];
+					lastNoteInfo = itemImagesInfo[beam.rightTop.imgNr];
+					extremeNoteInfo =itemImagesInfo[beam.highestOnTop.imgNr]; 	
+					var rotationPointXposPx = beam.highestOnTop.XposPx + extremeNoteInfo.param2 * spacingPx;
+					var rotationPointYposPx = beam.highestOnTop.YposPx - 2.5 * spacingPx;
+					if(beam.highestOnTop.Ypos == beam.leftTop.Ypos || beam.highestOnTop.Ypos == beam.rightTop.Ypos){
+						// At least on of the end notes is as high as extreme point:	
+						rotationPointYposPx -= 0.5 * spacingPx
+					}
+					upperLeftXPx = beam.leftTop.XposPx;
+					upperRightXPx = beam.rightTop.XposPx;
+					upperLeftXPx += firstNoteInfo.param2 * spacingPx;
+					upperRightXPx += lastNoteInfo.param2 * spacingPx;
+					beamXYcoeff = (beamAngle * spacingPx / 1.5) / (upperRightXPx - upperLeftXPx);
+					upperLeftYPx = rotationPointYposPx - ((rotationPointXposPx - upperLeftXPx) * beamXYcoeff);
+					upperRightYPx = rotationPointYposPx + ((upperRightXPx - rotationPointXposPx) * beamXYcoeff);
+
+				
+					
+				}
+				else{
+					//alert("stem Down");
+					firstNoteInfo = itemImagesInfo[beam.leftBot.imgNr];
+					lastNoteInfo = itemImagesInfo[beam.rightBot.imgNr];
+					extremeNoteInfo =itemImagesInfo[beam.lowestOnBot.imgNr];
+
+					upperLeftXPx = beam.leftBot.XposPx;
+					upperLeftYPx = beam.leftBot.YposPx + spacingPx;
+					upperRightXPx = beam.rightBot.XposPx;
+					upperRightYPx = beam.rightBot.YposPx + spacingPx;
+	
+					upperLeftYPx += (spacingPx * (3.0 - BEAM_THICKNESS));
+					upperRightYPx += (spacingPx * (3.0 - BEAM_THICKNESS));
+				}
 
 				context.beginPath();
 				context.moveTo(upperLeftXPx, upperLeftYPx);
@@ -1474,8 +1543,6 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 				context.lineTo(upperLeftXPx, upperLeftYPx);
 				context.fill();
 				context.stroke();
-
-				//render flags
 
 
 
@@ -1833,6 +1900,7 @@ VoiceTick = function(ticksLength){
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
 	this.forcedStemDir = 0; // -1 = upStem, 1 = downStem
+	this.stemLengthPx; // Used by beaming algorithm
 };
 
 
@@ -1913,8 +1981,9 @@ var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
 	this.lowestOnBot;
 	this.totalAscend;
 	this.totalDescend;
-	this.isFlag;
-	this.flagDirIsLeft;
+	this.weightedAscend; // start end: weight 1, next: w=0.5 etc.
+	this.isFlag = false;
+	this.flagDirIsLeft = false;
 	this.startXpos;
 	this.startYpos;
 	this.endXpos;
@@ -1927,8 +1996,11 @@ Beam.prototype.calcPositions = function(){
 	this.avgYpos = 0;
 	this.totalAscend = 0;
 	this.totalDescend = 0;
+	this.weightedAscend = 0;
 	
-	var voiceTick;
+	var voiceTick, ascWeight;
+	var halfWay = (this.toNoteIndex - this.fromNoteIndex) / 2;
+	var halfCounter = halfWay;
 	for(var i = this.fromNoteIndex; i <= this.toNoteIndex; i++){
 		voiceTick = this.beamGroup.voiceTicks[i];
 		this.avgYpos += voiceTick.avgYpos;
@@ -1940,10 +2012,10 @@ Beam.prototype.calcPositions = function(){
 			this.rightTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
 			this.rightBot = voiceTick.noteRests[0];
 		}
-		if(voiceTick.noteRests[voiceTick.noteRests.length - 1] < this.highestOnTop){
-			this.highestOnTop = voicsTick.noteRests[voiceTick.noteRests.length - 1];
+		if(this.highestOnTop == undefined || voiceTick.noteRests[voiceTick.noteRests.length - 1].Ypos < this.highestOnTop.Ypos){
+			this.highestOnTop = voiceTick.noteRests[voiceTick.noteRests.length - 1];
 		}
-		if(voiceTick.noteRests[0] > this.lowestYposOnBot){
+		if(this.lowestOnBot == undefined || voiceTick.noteRests[0].Ypos > this.lowestOnBot.Ypos){
 			this.lowestOnBot = voiceTick.noteRests[0];
 		}
 		if(i > this.fromNoteIndex){
@@ -1951,7 +2023,13 @@ Beam.prototype.calcPositions = function(){
 			if(diff > 0){ this.totalDescend += diff; }
 			else{ this.totalAscend -= diff;  }
 		}
+			this.weightedAscend -= halfCounter * voiceTick.avgYpos / halfWay;
+			halfCounter -= 1;
+		 
 	}
+	this.weightedAscend += (this.beamGroup.voiceTicks[this.toNoteIndex].avgYpos
+						   - this.beamGroup.voiceTicks[0].avgYpos) * 0.5;
+	alert("Vektet stigning beam: " + this.weightedAscend);
 	this.avgYpos /= (this.toNoteIndex - this.fromNoteIndex);
 };
 
