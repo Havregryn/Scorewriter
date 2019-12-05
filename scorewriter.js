@@ -59,7 +59,7 @@ window.onload = function(){
 
 	score.masterStaff.insertKey(new Key(0, 0, 0)); // Key, QnotePos, ticksPos
 	score.masterStaff.insertTimeSignature(new TimeSignature(4,4, 0, 0)); // topNr, botNr, qNotePos, ticksPos
-	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE * 4];
+	score.masterStaff.timeSigs[0].beamGroups = [Q_NOTE * 2, Q_NOTE * 2];
 
 	score.staffs[0] = new Staff(this.masterStaff);
 	score.staffs[0].insertClef(new Clef(50, 0, 0)); // clefNr, qNotePos, ticksPos
@@ -75,9 +75,11 @@ window.onload = function(){
 	score.appendMeasures(33);
 
 	//NoteRest(isNote, noteNr)
-	score.addNoteRest(new NoteRest(true, 74), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0);//noteR, ticksL, ticksPos, measureNr, staffNr, VoiceNr 
+	//score.addNoteRest(new NoteRest(true, 48), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0);//noteR, ticksL, ticksPos, measureNr, staffNr, VoiceNr 
 	score.addNoteRest(new NoteRest(true, 77), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 79), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 81), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
+	score.addNoteRest(new NoteRest(true, 83), Q_NOTE * 0.5, Q_NOTE * 0.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 62), Q_NOTE * 0.5, Q_NOTE * 0.5,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 1.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 65), Q_NOTE * 0.5, Q_NOTE * 1.5,  0, 0, 0); 
@@ -88,10 +90,10 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 84), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0); 
 	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 1.0, Q_NOTE * 2.0,  0, 0, 0);
 
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 64), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 67), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
-	score.addNoteRest(new NoteRest(true, 72), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 36), Q_NOTE * 0.5, Q_NOTE * 0.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 48), Q_NOTE * 0.5, Q_NOTE * 0.5,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 47), Q_NOTE * 0.5, Q_NOTE * 1.0,  1, 0, 0);
+	score.addNoteRest(new NoteRest(true, 45), Q_NOTE * 0.5, Q_NOTE * 1.5,  1, 0, 0);
 
 	score.addNoteRest(new NoteRest(true, 46), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
 	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 2.0, Q_NOTE * 2.0,  1, 0, 0);
@@ -119,10 +121,28 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 59), Q_NOTE * 0.5, Q_NOTE * 0.5,  4, 0, 0);
 	score.addNoteRest(new NoteRest(true, 57), Q_NOTE * 0.5, Q_NOTE * 1.0,  4, 0, 0);
 	score.addNoteRest(new NoteRest(true, 55), Q_NOTE * 0.5, Q_NOTE * 1.5,  4, 0, 0);
-	score.addNoteRest(new NoteRest(true, 53), Q_NOTE * 0.5, Q_NOTE * 2.0,  4, 0, 0);
-	score.addNoteRest(new NoteRest(true, 52), Q_NOTE * 0.5, Q_NOTE * 2.5,  4, 0, 0);
-	score.addNoteRest(new NoteRest(true, 50), Q_NOTE * 0.5, Q_NOTE * 3.0,  4, 0, 0);
-	score.addNoteRest(new NoteRest(true, 48), Q_NOTE * 0.5, Q_NOTE * 3.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 2.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 2.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 3.0,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 3.5,  4, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE * 0.5, Q_NOTE * 3.5,  4, 0, 0);
+
+
+	score.addNoteRest(new NoteRest(true, 84+12), Q_NOTE * 0.5, Q_NOTE * 0.0,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 83+12), Q_NOTE * 0.5, Q_NOTE * 0.5,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 81+12), Q_NOTE * 0.5, Q_NOTE * 1.0,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 79+12), Q_NOTE * 0.5, Q_NOTE * 1.5,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 79+12), Q_NOTE * 0.5, Q_NOTE * 2.0,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 81+12), Q_NOTE * 0.5, Q_NOTE * 2.5,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 83+12), Q_NOTE * 0.5, Q_NOTE * 3.0,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 84+12), Q_NOTE * 0.5, Q_NOTE * 3.5,  5, 0, 0);
+	score.addNoteRest(new NoteRest(true, 83+12), Q_NOTE * 0.5, Q_NOTE * 3.5,  5, 0, 0);
+
+
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 0,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 1/4,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 2/4,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 3/4,  6, 0, 0);
 
 	score.addPart();
 	score.parts[0].addPage();
@@ -225,7 +245,7 @@ var render = function(redraw){
 	context.scale(drawScale, drawScale);
 	score.render();
 	context.strokeStyle = "black";
-	context.font = "50px Baskerville";
+	context.font = "10px Baskerville";
 	context.textAlign = "left";
 	context.fillText(score.title, 50, 50);
 	
@@ -256,7 +276,7 @@ var Score = function(){
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
 
-	this.title = "Beam: få ferdig fast vinkel, riktig avstand. linje 1500";
+	this.title = "Clusterkolonner problem: Stem til cluster blr merkelig noen ganger.";
 	this.composer = "W. A. Mozart";
 }
 
@@ -436,7 +456,7 @@ var System = function(page){
 };
 
 System.prototype.receiveSysMeasure = function(sysMeasure, sysMeasureNr){
-	if(this.systemMeasures.length < 4){
+	if(this.systemMeasures.length < 3){
 		this.systemMeasures.push(sysMeasure);
 		if(this.systemMeasures.length == 1){
 			this.systemMeasures[this.systemMeasures.length - 1].setShowInitKey(true);	
@@ -1368,11 +1388,6 @@ Staff_Measure.prototype.render = function(leftX, topY, width, redraw){
 };
 
 Staff_Measure.prototype.renderBeamsFlagsStems = function(){
-	// To do:
-	// Helnoter: Ingenting å gjøre:
-	// 4d voiceticks eller større: Lag stem ut ifra vanlige regler
-	// Underdelinger utenom beams må få flagg, sjekk voiceTick.isBeamed.
-	// Noter knyttet til en beam må få en stem satt i henhold til dette
 
 	// Draw stem/flag on unbeamed notes:
 	var staffTick, stemDir = -1;
@@ -1383,9 +1398,7 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 			vt = staffTick.voiceTicks[vtIx];
 			//alert(vt.isBeamed);
 			if(!vt.isBeamed && vt.ticksLength < Q_NOTE * 4){
-				// HER SKAL STEM TEGNES!
-				// KOPIER FRA RENDER, men tilpass til voicetick
-				
+
 				// Setting stemDir;
 				if(vt.forcedStemDir != 0){
 					stemDir = vt.forcedStemDir;
@@ -1452,7 +1465,7 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 	}
 
 	// Drawing beams and corresponding stems:
-	var voice, beamGroup, beam, beamAngle = 0, beamXYcoeff; // beamAngle: -2 = descending, +2 ascending
+	var voice, beamGroup, beam, beamAngle = 0; // beamAngle: -2 = descending, +2 ascending
 	for(var v = 0;  v < this.voiceBeamGroups.length; v++){
 
 		for(var bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
@@ -1460,9 +1473,9 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 
 			for(var b = 0; b < beamGroup.beams.length; b++){
 				beam = beamGroup.beams[b];
+
+				//Her: IF 8d beam, hvis ikke gjør en enkel tegnerutine.
 				beam.calcPositions();
-
-
 				// Setting stemDir:
 				// Checking if first note in beam has forced stemDir:
 				if(beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir != 0){
@@ -1474,13 +1487,8 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 						if(v % 2 != 0){ stemDir = 1; } else{ stemDir = -1;  } 
 					}
 					else{
-						if(beam.avgYpos >= HIGHEST_UPSTEM_YPOS){
-							stemDir = -1;	
-						}
-						else{
-						//	alert(vt.avgYpos);
-							stemDir = 1;
-						}
+						if(beam.avgYpos >= HIGHEST_UPSTEM_YPOS){ stemDir = -1; }
+						else{ stemDir = 1; }
 					}
 				}
 				// Beam vinkel: settes ved avstand start, slutt.
@@ -1490,50 +1498,84 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 				// ekstremnote. Prøve først: Se bort fra sub-beams.
 				var upperLeftXPx, upperLeftYPx, upperRightXPx, upperRightYPx;
 				var firstNoteInfo, lastNoteInfo, extremeNoteInfo;
+				var rotationPointXposPx, rotationPointYposPx;
+				var midNoteLineYPx;
 				
-
 				// setting beamAngle:
-
+				beamAngle = 0;
 				if(beam.weightedAscend < -4){ beamAngle = -2; }
 				else if(beam.weightedAscend < -2){ beamAngle = -1;  }
 				else if(beam.weightedAscend > 4){ beamAngle = 2; }
 				else if(beam.weightedAscend > 2){ beamAngle = 1; }
-				
-				if(stemDir < 0){
-					firstNoteInfo = itemImagesInfo[beam.leftTop.imgNr];
-					lastNoteInfo = itemImagesInfo[beam.rightTop.imgNr];
-					extremeNoteInfo =itemImagesInfo[beam.highestOnTop.imgNr]; 	
-					var rotationPointXposPx = beam.highestOnTop.XposPx + extremeNoteInfo.param2 * spacingPx;
-					var rotationPointYposPx = beam.highestOnTop.YposPx - 2.5 * spacingPx;
-					if(beam.highestOnTop.Ypos == beam.leftTop.Ypos || beam.highestOnTop.Ypos == beam.rightTop.Ypos){
-						// At least on of the end notes is as high as extreme point:	
-						rotationPointYposPx -= 0.5 * spacingPx
-					}
-					upperLeftXPx = beam.leftTop.XposPx;
-					upperRightXPx = beam.rightTop.XposPx;
-					upperLeftXPx += firstNoteInfo.param2 * spacingPx;
-					upperRightXPx += lastNoteInfo.param2 * spacingPx;
-					beamXYcoeff = (beamAngle * spacingPx / 1.5) / (upperRightXPx - upperLeftXPx);
-					upperLeftYPx = rotationPointYposPx - ((rotationPointXposPx - upperLeftXPx) * beamXYcoeff);
-					upperRightYPx = rotationPointYposPx + ((upperRightXPx - rotationPointXposPx) * beamXYcoeff);
 
-				
-					
-				}
-				else{
-					//alert("stem Down");
+				if(stemDir < 0){
 					firstNoteInfo = itemImagesInfo[beam.leftBot.imgNr];
 					lastNoteInfo = itemImagesInfo[beam.rightBot.imgNr];
-					extremeNoteInfo =itemImagesInfo[beam.lowestOnBot.imgNr];
-
+					extremeNoteInfo =itemImagesInfo[beam.highestOnTop.imgNr]; 	
+					rotationPointXposPx = beam.highestOnTop.XposPx + extremeNoteInfo.param2 * spacingPx;
+					rotationPointYposPx = beam.highestOnTop.YposPx - 3 * spacingPx;
 					upperLeftXPx = beam.leftBot.XposPx;
-					upperLeftYPx = beam.leftBot.YposPx + spacingPx;
 					upperRightXPx = beam.rightBot.XposPx;
-					upperRightYPx = beam.rightBot.YposPx + spacingPx;
-	
-					upperLeftYPx += (spacingPx * (3.0 - BEAM_THICKNESS));
-					upperRightYPx += (spacingPx * (3.0 - BEAM_THICKNESS));
+					upperLeftXPx += firstNoteInfo.param2 * spacingPx;
+					upperRightXPx += lastNoteInfo.param2 * spacingPx;
+										
 				}
+				else{
+					firstNoteInfo = itemImagesInfo[beam.leftTop.imgNr];
+					lastNoteInfo = itemImagesInfo[beam.rightTop.imgNr];
+					extremeNoteInfo =itemImagesInfo[beam.lowestOnBot.imgNr]; 	
+					rotationPointXposPx = beam.lowestOnBot.XposPx + extremeNoteInfo.param1 * spacingPx;
+					rotationPointYposPx = beam.lowestOnBot.YposPx +  4 * spacingPx - BEAM_THICKNESS * spacingPx;
+					upperLeftXPx = beam.leftTop.XposPx;
+					upperRightXPx = beam.rightTop.XposPx;
+					upperLeftXPx += firstNoteInfo.param1 * spacingPx;
+					upperRightXPx += lastNoteInfo.param1 * spacingPx;
+					
+				}
+			
+				// Up AND Down stem beams:
+				beam.XYcoeff = (beamAngle * spacingPx / 1.5) / (upperRightXPx - upperLeftXPx);
+				upperLeftYPx = rotationPointYposPx - ((rotationPointXposPx - upperLeftXPx) * beam.XYcoeff);
+				upperRightYPx = rotationPointYposPx + ((upperRightXPx - rotationPointXposPx) * beam.XYcoeff);
+				midNoteLineYPx = beam.leftTop.YposPx - beam.leftTop.Ypos * spacingPx + 2.0 * spacingPx;
+				
+				// Adjusting beam to midstaff if high/low notes:
+				if((((upperLeftYPx + upperRightYPx) / 2) - midNoteLineYPx) * -stemDir > 0 ){
+					var offsetYPx = ((upperLeftYPx + upperRightYPx) / 2 - midNoteLineYPx) * stemDir;
+					upperLeftYPx -= offsetYPx * stemDir;
+					upperRightYPx -= offsetYPx * stemDir;
+					rotationPointYposPx -= offsetYPx * stemDir;
+				}
+
+				//Stems
+				var rootNote, rootInfo, stemXpx, stemYstartPx;
+				for(var vtIx = beam.fromNoteIndex; vtIx <= beam.toNoteIndex; vtIx++){
+					if(stemDir == -1){
+						rootNote = beamGroup.voiceTicks[vtIx].noteRests[0];
+						rootInfo = itemImagesInfo[rootNote.imgNr];
+						stemXpx = rootNote.XposPx + rootInfo.param2 * spacingPx;
+						stemYstartPx = rootNote.YposPx + rootInfo.param4 * spacingPx;
+						stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
+					}
+					else{
+						rootNote = beamGroup.voiceTicks[vtIx].noteRests[beamGroup.voiceTicks[vtIx].noteRests.length - 1];
+						rootInfo = itemImagesInfo[rootNote.imgNr];
+						stemXpx = rootNote.XposPx;
+						stemYstartPx = rootNote.YposPx + rootInfo.param3 * spacingPx;
+						stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
+					}	
+					context.lineWidth = stemW;
+					context.beginPath();
+					context.moveTo(stemXpx, stemYstartPx);
+					context.lineTo(stemXpx, stemYendPx);
+					context.stroke();
+				}
+				
+				beam.upperLeftXPx = upperLeftXPx;
+				beam.upperLeftYPx = upperLeftYPx;
+				beam.upperRightXPx = upperRightXPx;
+				beam.upperRightYPx = upperRightYPx;
+
 
 				context.beginPath();
 				context.moveTo(upperLeftXPx, upperLeftYPx);
@@ -1543,10 +1585,7 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 				context.lineTo(upperLeftXPx, upperLeftYPx);
 				context.fill();
 				context.stroke();
-
-
-
-			}
+			}// for beam
 		}
 	}	
 };
@@ -1900,7 +1939,6 @@ VoiceTick = function(ticksLength){
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
 	this.forcedStemDir = 0; // -1 = upStem, 1 = downStem
-	this.stemLengthPx; // Used by beaming algorithm
 };
 
 
@@ -1932,19 +1970,21 @@ var BeamGroup = function(fromTick, toTick){ //toTick is EXCLUSIVE
 };
 
 BeamGroup.prototype.buildBeams = function(){
-	//alert("BeamGroup bygger beams, antall voiceTicks i beam: " + this.voiceTicks.length);
-	// Bygge beams her! 
-	// Sjekk om to eller flere som kan kobles sammen
-	var firstVoiceTickIx, lastVoiceTickIx, vtAtIx;
+
+	// Må utvides til å fange opp sub beams også
+	//
+	var firstVoiceTickIx, lastVoiceTickIx, vtAtIx, ticksShortestNote;
 	var readyForNew = true;
 	for(var i = 0; i < this.voiceTicks.length; i++){
 		vtAtIx = this.voiceTicks[i];
 		if(readyForNew && vtAtIx.ticksLength < Q_NOTE){ 
-			firstVoiceTickIx = i; 
+			firstVoiceTickIx = i;
+			ticksShortestNote = vtAtIx.ticksLength;
 			readyForNew = false;
 		}
 		else if(!readyForNew && vtAtIx.ticksLength < Q_NOTE){
 			lastVoiceTickIx = i;
+			if(vtAtIx.ticksLength < ticksShortestNote){ ticksShortestNote = vtAtIx.ticksLength; }
 		//	alert("beambygg, lastNoteIx: " + lastVoiceTickIx);
 		}
 		if(vtAtIx.ticksLength >= Q_NOTE || i == this.voiceTicks.length - 1){
@@ -1952,12 +1992,39 @@ BeamGroup.prototype.buildBeams = function(){
 			if(!readyForNew && lastVoiceTickIx > firstVoiceTickIx){
 				// We have a beam!
 				//alert("We have a beam, firstIx: " + firstVoiceTickIx + " last Ix: " + lastVoiceTickIx);
-				var bm = new Beam(this, 8, firstVoiceTickIx, lastVoiceTickIx);
+				var bm = new Beam(this, Q_NOTE / 2, firstVoiceTickIx, lastVoiceTickIx);
 				for(var vtIx = firstVoiceTickIx; vtIx <= lastVoiceTickIx; vtIx++){
 					this.voiceTicks[vtIx].isBeamed = true;
 				}
 				this.beams.push(bm);
-				//readyForNew = true;
+				
+				// LOOP her som gå gjennom alle sub verdier til shortest note og bygger sub beams: 16d, 32d til 256d
+				var subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx;
+
+				for(var ticksBeamValue = Q_NOTE / 2; ticksBeamValue >= ticksShortestNote; ticksBeamValue /= 2){
+					// Kopier inn rutinene over,tilpass til sub beams. ALLT skal beames, også enkeltnoter!			
+					readyForNew = true;
+					for(var i2 = bm.fromNoteIndex; i2 <= bm.toNoteIndex; i2++){
+						vtAtIx = this.voiceTicks[i2];
+						if(readyForNew && vtAtIx.ticksLength < ticksBeamValue){
+							subBeamFirstVoiceTickIx = i2;
+							subBeamLastVoiceTickIx = i2;
+							readyForNew = false;						
+						}
+						else if(!readyForNew && vtAtIx.ticksLength < ticksBeamValue){
+							subBeamLastVoiceTickIx = i2;		
+						}
+						if(vtAtIx.ticksLength >= ticksBeamValue || i2 == this.voiceTicks.length - 1){
+							if(!readyForNew){
+								var subBm = new Beam(this, ticksBeamValue / 2, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
+								subBm.mainBeam = bm;
+								var subBm = new Beam(this,Q_NOTE * 4 / ticksBeamValue, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
+								readyForNew = true;
+							}
+						}
+											
+					}
+				}
 			}
 			readyForNew = true;
 		}
@@ -1972,6 +2039,7 @@ var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
 	this.fromNoteIndex = fromNoteIndex;
 	this.toNoteIndex = toNoteIndex;
 	//this.voiceTicks = [];
+	this.mainBeam;
 	this.avgYpos;
 	this.leftTop;
 	this.leftBot;
@@ -1988,6 +2056,11 @@ var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
 	this.startYpos;
 	this.endXpos;
 	this.endYpos;
+	this.upperLeftXPx;
+	this.upperLeftYPx;
+	this.upperRightXPx;
+	this.upperRightYPx;
+	this.XYcoeff;
 };
 
 
@@ -2029,8 +2102,9 @@ Beam.prototype.calcPositions = function(){
 	}
 	this.weightedAscend += (this.beamGroup.voiceTicks[this.toNoteIndex].avgYpos
 						   - this.beamGroup.voiceTicks[0].avgYpos) * 0.5;
-	alert("Vektet stigning beam: " + this.weightedAscend);
 	this.avgYpos /= (this.toNoteIndex - this.fromNoteIndex);
+
+	if(this.fromNoteIndex == this.toNoteIndex){ this.isFlag = true; }
 };
 
 
