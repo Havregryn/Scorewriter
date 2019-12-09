@@ -10,7 +10,7 @@ var context;
 var width;
 var height;
 var Q_NOTE = 30240; // No of ticks in a quarter note
-var spacingPx =20; // The main zoom level: Spacing between lines in a staff
+var spacingPx =15; // The main zoom level: Spacing between lines in a staff
 var systemSpacing = 20;
 var drawScale = 1; // The canvas scaling factor
 var padding = 0.3; // The minimum padding between items, times  spacingPx.
@@ -18,7 +18,7 @@ var emptyBarMinSpace = 32; // Releated to spacing
 var restsMaxNrDots = 2; // The maximum nr of dots on a rest.
 var stemW = spacingPx/30;
 var HIGHEST_UPSTEM_YPOS = 2.0;
-var BEAM_THICKNESS = 0.4;
+var BEAM_THICKNESS = 2/5;
 
 var staffs = [];
 var musicSystem; // The main score, all staffs combined
@@ -139,10 +139,24 @@ window.onload = function(){
 	score.addNoteRest(new NoteRest(true, 83+12), Q_NOTE * 0.5, Q_NOTE * 3.5,  5, 0, 0);
 
 
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 0,  6, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 1/4,  6, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 2/4,  6, 0, 0);
-	score.addNoteRest(new NoteRest(true, 60), Q_NOTE/4, Q_NOTE * 3/4,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 84), Q_NOTE/4, Q_NOTE * 0,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 1/4,  6, 0, 0);
+	//score.addNoteRest(new NoteRest(true, 72), Q_NOTE/4, Q_NOTE * 2/4,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 72), Q_NOTE/4, Q_NOTE * 3/4,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 62), Q_NOTE/2, Q_NOTE * 1.0,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 1.5,  6, 0, 0);
+	
+	
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.000,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.125,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.250,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.375,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.500,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.625,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.750,  6, 0, 0);
+	score.addNoteRest(new NoteRest(true, 67), Q_NOTE/2, Q_NOTE * 2.875,  6, 0, 0);
+	
+
 
 	score.addPart();
 	score.parts[0].addPage();
@@ -276,7 +290,7 @@ var Score = function(){
 	this.qNoteEndPureMusic = 0;
 	this.ticksEndPureMusic = 0;
 
-	this.title = "Clusterkolonner problem: Stem til cluster blr merkelig noen ganger.";
+	this.title = "Clusterkolonner ikke iorden";
 	this.composer = "W. A. Mozart";
 }
 
@@ -1470,113 +1484,164 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 
 		for(var bg = 0; bg < this.voiceBeamGroups[v].length; bg++){
 			beamGroup = this.voiceBeamGroups[v][bg];
+			var upperLeftXPx, upperLeftYPx, upperRightXPx, upperRightYPx;
 
 			for(var b = 0; b < beamGroup.beams.length; b++){
 				beam = beamGroup.beams[b];
-
 				//Her: IF 8d beam, hvis ikke gjør en enkel tegnerutine.
-				beam.calcPositions();
-				// Setting stemDir:
-				// Checking if first note in beam has forced stemDir:
-				if(beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir != 0){
-					stemDir = beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir;
-				}
-				else{
-					if(this.noOfVoices > 1){
-						// More than one voice, stemDir set by voiceNr
-						if(v % 2 != 0){ stemDir = 1; } else{ stemDir = -1;  } 
+				if(beam.beamValue == Q_NOTE / 2){
+
+					beam.calcPositions();
+					// Setting stemDir:
+					// Checking if first note in beam has forced stemDir:
+					if(beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir != 0){
+						stemDir = beamGroup.voiceTicks[beam.fromNoteIndex].forcedStemDir;
 					}
 					else{
-						if(beam.avgYpos >= HIGHEST_UPSTEM_YPOS){ stemDir = -1; }
-						else{ stemDir = 1; }
+						if(this.noOfVoices > 1){
+							// More than one voice, stemDir set by voiceNr
+							if(v % 2 != 0){ stemDir = 1; } else{ stemDir = -1;  } 
+						}
+						else{
+							if(beam.avgYpos >= HIGHEST_UPSTEM_YPOS){ stemDir = -1; }
+							else{ stemDir = 1; }
+						}
 					}
-				}
-				// Beam vinkel: settes ved avstand start, slutt.
-				// 0 = flat. 0.5 - 1 = liten vinkel. > 1 = stor vinkel
-				//
-				// Beam avstand: 8del beam settes av minste underdeling i beam og
-				// ekstremnote. Prøve først: Se bort fra sub-beams.
-				var upperLeftXPx, upperLeftYPx, upperRightXPx, upperRightYPx;
-				var firstNoteInfo, lastNoteInfo, extremeNoteInfo;
-				var rotationPointXposPx, rotationPointYposPx;
-				var midNoteLineYPx;
-				
-				// setting beamAngle:
-				beamAngle = 0;
-				if(beam.weightedAscend < -4){ beamAngle = -2; }
-				else if(beam.weightedAscend < -2){ beamAngle = -1;  }
-				else if(beam.weightedAscend > 4){ beamAngle = 2; }
-				else if(beam.weightedAscend > 2){ beamAngle = 1; }
-
-				if(stemDir < 0){
-					firstNoteInfo = itemImagesInfo[beam.leftBot.imgNr];
-					lastNoteInfo = itemImagesInfo[beam.rightBot.imgNr];
-					extremeNoteInfo =itemImagesInfo[beam.highestOnTop.imgNr]; 	
-					rotationPointXposPx = beam.highestOnTop.XposPx + extremeNoteInfo.param2 * spacingPx;
-					rotationPointYposPx = beam.highestOnTop.YposPx - 3 * spacingPx;
-					upperLeftXPx = beam.leftBot.XposPx;
-					upperRightXPx = beam.rightBot.XposPx;
-					upperLeftXPx += firstNoteInfo.param2 * spacingPx;
-					upperRightXPx += lastNoteInfo.param2 * spacingPx;
-										
-				}
-				else{
-					firstNoteInfo = itemImagesInfo[beam.leftTop.imgNr];
-					lastNoteInfo = itemImagesInfo[beam.rightTop.imgNr];
-					extremeNoteInfo =itemImagesInfo[beam.lowestOnBot.imgNr]; 	
-					rotationPointXposPx = beam.lowestOnBot.XposPx + extremeNoteInfo.param1 * spacingPx;
-					rotationPointYposPx = beam.lowestOnBot.YposPx +  4 * spacingPx - BEAM_THICKNESS * spacingPx;
-					upperLeftXPx = beam.leftTop.XposPx;
-					upperRightXPx = beam.rightTop.XposPx;
-					upperLeftXPx += firstNoteInfo.param1 * spacingPx;
-					upperRightXPx += lastNoteInfo.param1 * spacingPx;
+					// Beam vinkel: settes ved avstand start, slutt.
+					// 0 = flat. 0.5 - 1 = liten vinkel. > 1 = stor vinkel
+					//
+					// Beam avstand: 8del beam settes av minste underdeling i beam og
+					// ekstremnote. Prøve først: Se bort fra sub-beams.
+					var firstNoteInfo, lastNoteInfo, extremeNoteInfo;
+					var rotationPointXposPx, rotationPointYposPx;
+					var midNoteLineYPx;
 					
-				}
-			
-				// Up AND Down stem beams:
-				beam.XYcoeff = (beamAngle * spacingPx / 1.5) / (upperRightXPx - upperLeftXPx);
-				upperLeftYPx = rotationPointYposPx - ((rotationPointXposPx - upperLeftXPx) * beam.XYcoeff);
-				upperRightYPx = rotationPointYposPx + ((upperRightXPx - rotationPointXposPx) * beam.XYcoeff);
-				midNoteLineYPx = beam.leftTop.YposPx - beam.leftTop.Ypos * spacingPx + 2.0 * spacingPx;
-				
-				// Adjusting beam to midstaff if high/low notes:
-				if((((upperLeftYPx + upperRightYPx) / 2) - midNoteLineYPx) * -stemDir > 0 ){
-					var offsetYPx = ((upperLeftYPx + upperRightYPx) / 2 - midNoteLineYPx) * stemDir;
-					upperLeftYPx -= offsetYPx * stemDir;
-					upperRightYPx -= offsetYPx * stemDir;
-					rotationPointYposPx -= offsetYPx * stemDir;
-				}
-
-				//Stems
-				var rootNote, rootInfo, stemXpx, stemYstartPx;
-				for(var vtIx = beam.fromNoteIndex; vtIx <= beam.toNoteIndex; vtIx++){
-					if(stemDir == -1){
-						rootNote = beamGroup.voiceTicks[vtIx].noteRests[0];
-						rootInfo = itemImagesInfo[rootNote.imgNr];
-						stemXpx = rootNote.XposPx + rootInfo.param2 * spacingPx;
-						stemYstartPx = rootNote.YposPx + rootInfo.param4 * spacingPx;
-						stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
+					// setting beamAngle:
+					beamAngle = 0;
+					if(beam.weightedAscend < -4){ beamAngle = -2; }
+					else if(beam.weightedAscend < -2){ beamAngle = -1;  }
+					else if(beam.weightedAscend > 4){ beamAngle = 2; }
+					else if(beam.weightedAscend > 2){ beamAngle = 1; }
+	
+					if(stemDir < 0){
+						firstNoteInfo = itemImagesInfo[beam.leftBot.imgNr];
+						lastNoteInfo = itemImagesInfo[beam.rightBot.imgNr];
+						extremeNoteInfo =itemImagesInfo[beam.highestOnTop.imgNr]; 	
+						rotationPointXposPx = beam.highestOnTop.XposPx + extremeNoteInfo.param2 * spacingPx;
+						rotationPointYposPx = beam.highestOnTop.YposPx - 3 * spacingPx;
+						upperLeftXPx = beam.leftBot.XposPx;
+						upperRightXPx = beam.rightBot.XposPx;
+						upperLeftXPx += firstNoteInfo.param2 * spacingPx;
+						upperRightXPx += lastNoteInfo.param2 * spacingPx;
+											
 					}
 					else{
-						rootNote = beamGroup.voiceTicks[vtIx].noteRests[beamGroup.voiceTicks[vtIx].noteRests.length - 1];
-						rootInfo = itemImagesInfo[rootNote.imgNr];
-						stemXpx = rootNote.XposPx;
-						stemYstartPx = rootNote.YposPx + rootInfo.param3 * spacingPx;
-						stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
-					}	
-					context.lineWidth = stemW;
-					context.beginPath();
-					context.moveTo(stemXpx, stemYstartPx);
-					context.lineTo(stemXpx, stemYendPx);
-					context.stroke();
-				}
+						firstNoteInfo = itemImagesInfo[beam.leftTop.imgNr];
+						lastNoteInfo = itemImagesInfo[beam.rightTop.imgNr];
+						extremeNoteInfo =itemImagesInfo[beam.lowestOnBot.imgNr]; 	
+						rotationPointXposPx = beam.lowestOnBot.XposPx + extremeNoteInfo.param1 * spacingPx;
+						rotationPointYposPx = beam.lowestOnBot.YposPx +  4 * spacingPx - BEAM_THICKNESS * spacingPx;
+						upperLeftXPx = beam.leftTop.XposPx;
+						upperRightXPx = beam.rightTop.XposPx;
+						upperLeftXPx += firstNoteInfo.param1 * spacingPx;
+						upperRightXPx += lastNoteInfo.param1 * spacingPx;
+						
+					}
 				
-				beam.upperLeftXPx = upperLeftXPx;
-				beam.upperLeftYPx = upperLeftYPx;
-				beam.upperRightXPx = upperRightXPx;
-				beam.upperRightYPx = upperRightYPx;
+					// Up AND Down stem beams:
+					beam.XYcoeff = (beamAngle * spacingPx / 1.5) / (upperRightXPx - upperLeftXPx);
+					upperLeftYPx = rotationPointYposPx - ((rotationPointXposPx - upperLeftXPx) * beam.XYcoeff);
+					upperRightYPx = rotationPointYposPx + ((upperRightXPx - rotationPointXposPx) * beam.XYcoeff);
+					midNoteLineYPx = beam.leftTop.YposPx - beam.leftTop.Ypos * spacingPx + 2.0 * spacingPx;
+					
+					// Adjusting beam to midstaff if high/low notes:
+					if((((upperLeftYPx + upperRightYPx) / 2) - midNoteLineYPx) * -stemDir > 0 ){
+						var offsetYPx = ((upperLeftYPx + upperRightYPx) / 2 - midNoteLineYPx) * stemDir;
+						upperLeftYPx -= offsetYPx * stemDir;
+						upperRightYPx -= offsetYPx * stemDir;
+						rotationPointYposPx -= offsetYPx * stemDir;
+					}
+	
+					//Stems
+					var rootNote, rootInfo, stemXpx, stemYstartPx;
+					for(var vtIx = beam.fromNoteIndex; vtIx <= beam.toNoteIndex; vtIx++){
+						if(stemDir == -1){
+							rootNote = beamGroup.voiceTicks[vtIx].noteRests[0];
+							rootInfo = itemImagesInfo[rootNote.imgNr];
+							stemXpx = rootNote.XposPx + rootInfo.param2 * spacingPx;
+							stemYstartPx = rootNote.YposPx + rootInfo.param4 * spacingPx;
+							stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
+						}
+						else{
+							rootNote = beamGroup.voiceTicks[vtIx].noteRests[beamGroup.voiceTicks[vtIx].noteRests.length - 1];
+							rootInfo = itemImagesInfo[rootNote.imgNr];
+							stemXpx = rootNote.XposPx;
+							stemYstartPx = rootNote.YposPx + rootInfo.param3 * spacingPx;
+							stemYendPx = rotationPointYposPx + ((stemXpx - rotationPointXposPx) * beam.XYcoeff);	
+						}	
+						context.lineWidth = stemW;
+						context.beginPath();
+						context.moveTo(stemXpx, stemYstartPx);
+						context.lineTo(stemXpx, stemYendPx);
+						context.stroke();
+					}
+					
+					//beam.upperLeftXPx = upperLeftXPx;
+					//beam.upperLeftYPx = upperLeftYPx;
+					//beam.upperRightXPx = upperRightXPx;
+					//beam.upperRightYPx = upperRightYPx;
+					beam.rotationPointXposPx = rotationPointXposPx;
+					beam.rotationPointYposPx = rotationPointYposPx;
+					beam.stemDir = stemDir;
+		
+
+				}// if 8note beam
+				else{
+
+					//alert(beam.fromNoteIndex + " -> " + beam.toNoteIndex);
+					var leftVt = beamGroup.voiceTicks[beam.fromNoteIndex];
+					var rightVt = beamGroup.voiceTicks[beam.toNoteIndex];
+					var leftRoot, rightRoot;
+					if(beam.mainBeam.stemDir == -1){
+						leftRoot = leftVt.noteRests[0];
+						rightRoot = rightVt.noteRests[0];
+						var leftInfo = itemImagesInfo[leftRoot.imgNr];
+						var rightInfo = itemImagesInfo[rightRoot.imgNr];
+						upperLeftXPx = leftRoot.XposPx + leftInfo.param2 * spacingPx;
+						upperRightXPx = rightRoot.XposPx + rightInfo.param2 * spacingPx;
+					}
+					else{
+						leftRoot = leftVt.noteRests[leftVt.noteRests.length - 1];
+						rightRoot = rightVt.noteRests[rightVt.noteRests.length - 1];
+						var leftInfo = itemImagesInfo[leftRoot.imgNr];
+						var rightInfo = itemImagesInfo[rightRoot.imgNr];
+						upperLeftXPx = leftRoot.XposPx + leftInfo.param1 * spacingPx;
+						upperRightXPx = rightRoot.XposPx + rightInfo.param1 * spacingPx;
+					}
+					if(beam.isFlag){
+						if(beam.flagDirIsLeft){ upperLeftXPx = upperRightXPx - spacingPx; }
+						else{ upperRightXPx = upperLeftXPx + spacingPx; }
+					}
 
 
+					upperLeftYPx = (upperLeftXPx - beam.mainBeam.rotationPointXposPx) * beam.mainBeam.XYcoeff + 
+								   beam.mainBeam.rotationPointYposPx;
+					upperRightYPx = (upperRightXPx - beam.mainBeam.rotationPointXposPx) * beam.mainBeam.XYcoeff +
+								   beam.mainBeam.rotationPointYposPx;
+
+					// Finne start og slutt x: start slutt av beam
+					if(beam.beamValue == Q_NOTE / 4){
+						// 16th note beam is placed between 8th beam and notehead
+						upperLeftYPx -= BEAM_THICKNESS * spacingPx * 2 * stemDir;
+						upperRightYPx -= BEAM_THICKNESS * spacingPx * 2 * stemDir;
+					}
+					else{
+						// 32nd beams and smaller is positioned on the outside:
+						alert("32nd beam or smaller is rendered");
+						var offset = (Q_NOTE / 32) / beam.beamValue;
+						upperLeftYpx += BEAM_THICKNESS * spacingPx * 2 * stemDir * offset; 
+					}
+				}
 				context.beginPath();
 				context.moveTo(upperLeftXPx, upperLeftYPx);
 				context.lineTo(upperRightXPx, upperRightYPx);
@@ -1585,6 +1650,9 @@ Staff_Measure.prototype.renderBeamsFlagsStems = function(){
 				context.lineTo(upperLeftXPx, upperLeftYPx);
 				context.fill();
 				context.stroke();
+
+
+
 			}// for beam
 		}
 	}	
@@ -1925,13 +1993,14 @@ var StaffTick = function(ticksPos){
 }
 
 StaffTick.prototype.addNoteRest = function(noteRest, ticksLength, voiceNr){
-	if(this.voiceTicks[voiceNr] == undefined){ this.voiceTicks[voiceNr] = new VoiceTick(ticksLength); }
+	if(this.voiceTicks[voiceNr] == undefined){ this.voiceTicks[voiceNr] = new VoiceTick(this, ticksLength); }
 	this.voiceTicks[voiceNr].addNoteRest(noteRest);
 };
 
 // VoiceTick objects contains the noteRests of one voice at one tick position.
 // It is responsible for stem, beams/flag and articulation.
-VoiceTick = function(ticksLength){ 
+VoiceTick = function(staffTick, ticksLength){
+	this.staffTick = staffTick;
 	this.ticksLength = ticksLength;
 	this.noteRests = [];
 	//this.beams = []; // Storing all beams. index 0 = semi quaver beams
@@ -2016,9 +2085,26 @@ BeamGroup.prototype.buildBeams = function(){
 						}
 						if(vtAtIx.ticksLength >= ticksBeamValue || i2 == this.voiceTicks.length - 1){
 							if(!readyForNew){
+								//alert("Legger til sub beam verdi: " + (ticksBeamValue/2));
 								var subBm = new Beam(this, ticksBeamValue / 2, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
 								subBm.mainBeam = bm;
-								var subBm = new Beam(this,Q_NOTE * 4 / ticksBeamValue, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
+								if(subBm.fromNoteIndex == subBm.toNoteIndex){
+									// Is a "flag" type beam:
+									subBm.isFlag = true;
+									if(subBm.fromNoteIndex == subBm.mainBeam.fromNoteIndex){
+										subBm.flagDirIsLeft = false;
+									}
+									else if(subBm.fromNoteIndex == subBm.mainBeam.toNoteIndex){
+										subBm.flagDirIsLeft = true;
+									}
+									else{
+										var ticksPos = this.voiceTicks[subBm.fromNoteIndex].staffTick.ticksPos - this.fromTick;
+										var vtSubDivSlotNr = Math.round(ticksPos / subBm.beamValue);
+										if(vtSubDivSlotNr % 2 == 0){ subBm.flagDirIsLeft = false; }
+										else{ subBm.flagDirIsLeft = true; }
+									}	
+								}
+								this.beams.push(subBm);;
 								readyForNew = true;
 							}
 						}
@@ -2052,14 +2138,17 @@ var Beam = function(beamGroup, beamValue, fromNoteIndex, toNoteIndex){
 	this.weightedAscend; // start end: weight 1, next: w=0.5 etc.
 	this.isFlag = false;
 	this.flagDirIsLeft = false;
+	this.stemDir;
 	this.startXpos;
 	this.startYpos;
 	this.endXpos;
 	this.endYpos;
-	this.upperLeftXPx;
-	this.upperLeftYPx;
-	this.upperRightXPx;
-	this.upperRightYPx;
+	//this.upperLeftXPx;
+	//this.upperLeftYPx;
+	//this.upperRightXPx;
+	//this.upperRightYPx;
+	this.rotationPointXposPx;
+	this.rotationPointYposPx;
 	this.XYcoeff;
 };
 
