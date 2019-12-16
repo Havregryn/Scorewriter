@@ -1999,11 +1999,12 @@ StaffTick.prototype.addNoteRest = function(noteRest, ticksLength, voiceNr){
 
 // VoiceTick objects contains the noteRests of one voice at one tick position.
 // It is responsible for stem, beams/flag and articulation.
-VoiceTick = function(staffTick, ticksLength){
+VoiceTick = function(staffTick, noteValue, dots){
 	this.staffTick = staffTick;
-	this.ticksLength = ticksLength;
+	//this.ticksLength = ticksLength// Denne må skrives om til noteValue!!;
+	this.noteValue = noteValue; // 2 = whole Note, 3 = half, 4 = quarter (Dorico)
+	this.dots = dots; // no of dots
 	this.noteRests = [];
-	//this.beams = []; // Storing all beams. index 0 = semi quaver beams
 	this.isBeamed = false;
 	this.width;
 	this.avgYpos; // The average Ypos value of all the notes. Set by buildGraphic.
@@ -2046,17 +2047,17 @@ BeamGroup.prototype.buildBeams = function(){
 	var readyForNew = true;
 	for(var i = 0; i < this.voiceTicks.length; i++){
 		vtAtIx = this.voiceTicks[i];
-		if(readyForNew && vtAtIx.ticksLength < Q_NOTE){ 
+		if(readyForNew && vtAtIx.noteValue > 4){ 
 			firstVoiceTickIx = i;
-			ticksShortestNote = vtAtIx.ticksLength;
+			valueShortestNote = vtAtIx.noteValue;
 			readyForNew = false;
 		}
-		else if(!readyForNew && vtAtIx.ticksLength < Q_NOTE){
+		else if(!readyForNew && vtAtIx.noteValue > 4){
 			lastVoiceTickIx = i;
-			if(vtAtIx.ticksLength < ticksShortestNote){ ticksShortestNote = vtAtIx.ticksLength; }
+			if(vtAtIx.noteValue < valueShortestNote){ valueShortestNote = vtAtIx.noteValue; }
 		//	alert("beambygg, lastNoteIx: " + lastVoiceTickIx);
 		}
-		if(vtAtIx.ticksLength >= Q_NOTE || i == this.voiceTicks.length - 1){
+		if(vtAtIx.noteValue <= valueShortestNote || i == this.voiceTicks.length - 1){
 			//alert("nesten der, første, siste: " + firstVoiceTickIx + ", " + lastVoiceTickIx);
 			if(!readyForNew && lastVoiceTickIx > firstVoiceTickIx){
 				// We have a beam!
@@ -2070,23 +2071,23 @@ BeamGroup.prototype.buildBeams = function(){
 				// LOOP her som gå gjennom alle sub verdier til shortest note og bygger sub beams: 16d, 32d til 256d
 				var subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx;
 
-				for(var ticksBeamValue = Q_NOTE / 2; ticksBeamValue >= ticksShortestNote; ticksBeamValue /= 2){
+				for(var beamValue = 5; beamValue <= valueShortestNote; noteBeamValue -= 1){
 					// Kopier inn rutinene over,tilpass til sub beams. ALLT skal beames, også enkeltnoter!			
 					readyForNew = true;
 					for(var i2 = bm.fromNoteIndex; i2 <= bm.toNoteIndex; i2++){
 						vtAtIx = this.voiceTicks[i2];
-						if(readyForNew && vtAtIx.ticksLength < ticksBeamValue){
+						if(readyForNew && vtAtIx.noteValue < noteBeamValue){
 							subBeamFirstVoiceTickIx = i2;
 							subBeamLastVoiceTickIx = i2;
 							readyForNew = false;						
 						}
-						else if(!readyForNew && vtAtIx.ticksLength < ticksBeamValue){
+						else if(!readyForNew && vtAtIx.noteValue < noteBeamValue){
 							subBeamLastVoiceTickIx = i2;		
 						}
-						if(vtAtIx.ticksLength >= ticksBeamValue || i2 == this.voiceTicks.length - 1){
+						if(vtAtIx.noteValue >= ticksBeamValue || i2 == this.voiceTicks.length - 1){
 							if(!readyForNew){
 								//alert("Legger til sub beam verdi: " + (ticksBeamValue/2));
-								var subBm = new Beam(this, ticksBeamValue / 2, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
+								var subBm = new Beam(this, noteBeamValue / 2, subBeamFirstVoiceTickIx, subBeamLastVoiceTickIx);
 								subBm.mainBeam = bm;
 								if(subBm.fromNoteIndex == subBm.toNoteIndex){
 									// Is a "flag" type beam:
@@ -2097,7 +2098,7 @@ BeamGroup.prototype.buildBeams = function(){
 									else if(subBm.fromNoteIndex == subBm.mainBeam.toNoteIndex){
 										subBm.flagDirIsLeft = true;
 									}
-									else{
+									else{// Denne må skrives om til noteValue!!
 										var ticksPos = this.voiceTicks[subBm.fromNoteIndex].staffTick.ticksPos - this.fromTick;
 										var vtSubDivSlotNr = Math.round(ticksPos / subBm.beamValue);
 										if(vtSubDivSlotNr % 2 == 0){ subBm.flagDirIsLeft = false; }
